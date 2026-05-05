@@ -19,3 +19,11 @@ export type {
   HardRequirementCode,
   HardRequirementsResult,
 } from "./types";
+export {
+  bandFor,
+  BAND_TEXT_CLASS,
+  BAND_BORDER_CLASS,
+  BAND_BG_SOFT_CLASS,
+  compositeInterpretation,
+  type ScoreBand,
+} from "./bands";

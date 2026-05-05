@@ -1,18 +1,15 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { ScoreRadar } from "./ScoreRadar";
 import { MissingKeywordsBar } from "./MissingKeywordsBar";
 import { ExportActions } from "./ExportActions";
 import type { AnalysisReport } from "@/lib/pipeline";
 import { COMPOSITE_WEIGHTS } from "@/lib/pipeline";
+import {
+  BAND_TEXT_CLASS,
+  bandFor,
+  compositeInterpretation,
+} from "@/lib/scoring/bands";
 
 interface Props {
   report: AnalysisReport;
@@ -21,47 +18,55 @@ interface Props {
 
 export function ReportView({ report, onReset }: Props) {
   const { scores } = report;
+  const compositeBand = bandFor(scores.composite);
+
   return (
-    <div className="space-y-8">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Report</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Four independent scores. The composite is shown for convenience —
-            the dimensions below it are more informative.
+    <div className="space-y-12">
+      {/* Header */}
+      <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="space-y-2">
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+            Report
+          </p>
+          <h2 className="display text-3xl text-foreground">Your analysis</h2>
+          <p className="max-w-xl text-sm text-muted-foreground">
+            Four independent scores, computed transparently. The composite is
+            shown for convenience — the dimensions below are more informative.
           </p>
         </div>
         <div className="flex flex-col items-start gap-3 lg:items-end">
           <ExportActions report={report} />
           <button
             onClick={onReset}
-            className="text-sm text-muted-foreground underline hover:text-foreground"
+            className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
             Run a new analysis
           </button>
         </div>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[2fr_3fr]">
-        <CompositeCard composite={scores.composite} />
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Dimensions</CardTitle>
-          </CardHeader>
-          <CardContent>
+      {/* Composite + radar */}
+      <section className="grid gap-10 lg:grid-cols-[3fr_2fr] lg:items-start">
+        <CompositeBlock composite={scores.composite} />
+        <div className="rounded-lg border border-border bg-card p-6">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            Dimensions
+          </p>
+          <div className="mt-2">
             <ScoreRadar
               keyword={scores.keyword.score}
               semantic={scores.semantic.score}
               hardRequirements={scores.hardRequirements.score}
               parseability={scores.parseability.score}
             />
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
+      </section>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Four dimension cards */}
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <DimensionCard
-          title="Keyword Match"
+          title="Keyword match"
           score={scores.keyword.score}
           weight={COMPOSITE_WEIGHTS.keyword}
           subtitle={`${scores.keyword.matched.length} of ${
@@ -69,19 +74,19 @@ export function ReportView({ report, onReset }: Props) {
           } JD keywords found`}
         />
         <DimensionCard
-          title="Semantic Similarity"
+          title="Semantic similarity"
           score={scores.semantic.score}
           weight={COMPOSITE_WEIGHTS.semantic}
           subtitle={`${
             scores.semantic.coverage.filter((c) => c.band === "well").length
-          } well-covered · ${
+          } well · ${
             scores.semantic.coverage.filter((c) => c.band === "weak").length
-          } weakly · ${
+          } weak · ${
             scores.semantic.coverage.filter((c) => c.band === "uncovered").length
           } uncovered`}
         />
         <DimensionCard
-          title="Hard Requirements"
+          title="Hard requirements"
           score={scores.hardRequirements.score}
           weight={COMPOSITE_WEIGHTS.hardRequirements}
           subtitle={`${
@@ -100,150 +105,148 @@ export function ReportView({ report, onReset }: Props) {
                 }`
           }
         />
-      </div>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Top missing JD keywords</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="mb-4 text-sm text-muted-foreground">
-            Sorted by weight (must-have keywords carry 3× nice-to-have).
-            Adding these to your resume — only where they accurately describe
-            your work — is the highest-leverage edit.
-          </p>
-          <MissingKeywordsBar missing={scores.keyword.missing} />
-        </CardContent>
-      </Card>
+      {/* Missing keywords */}
+      <ReportSection
+        title="Top missing JD keywords"
+        eyebrow="Keyword match"
+        description="Sorted by weight; must-have keywords carry 3× nice-to-have. Add these to your resume only where they accurately describe your work — that is the highest-leverage edit."
+      >
+        <MissingKeywordsBar missing={scores.keyword.missing} />
+      </ReportSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Hard requirements checklist</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {scores.hardRequirements.requirements.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No hard requirements were extracted from this JD.
-            </p>
-          ) : (
-            <ul className="divide-y divide-border">
-              {scores.hardRequirements.requirements.map((req, i) => (
-                <li
-                  key={`${req.code}-${i}`}
-                  className="flex items-start gap-3 py-3"
-                >
-                  <span
-                    className={[
-                      "mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
-                      req.passed
-                        ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
-                        : "bg-destructive/15 text-destructive",
-                    ].join(" ")}
-                  >
-                    {req.passed ? "✓" : "✗"}
-                  </span>
-                  <div className="flex-1">
-                    <p className="text-sm">{req.detail}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Source: {truncate(req.description, 110)}
-                    </p>
-                  </div>
-                  <Badge variant="outline" className="shrink-0 text-[10px]">
-                    {req.code.replace(/-/g, " ")}
-                  </Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Semantic coverage</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      {/* Hard requirements checklist */}
+      <ReportSection
+        title="Hard requirements"
+        eyebrow="Pass / fail"
+        description="Concrete, traceable asks extracted from the must-have section of the JD."
+      >
+        {scores.hardRequirements.requirements.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            For each JD requirement we found the resume bullet with the
-            highest semantic similarity. Coverage bands: well (cosine ≥ 0.7),
-            weak (0.5–0.7), uncovered (&lt; 0.5).
+            No hard requirements were extracted from this JD.
           </p>
+        ) : (
           <ul className="divide-y divide-border">
-            {scores.semantic.coverage.map((c, i) => (
-              <li key={i} className="space-y-2 py-3">
-                <div className="flex items-start gap-3">
-                  <CoverageBadge band={c.band} />
-                  <p className="flex-1 text-sm">{c.requirement.text}</p>
-                </div>
-                {c.bestMatch && (
-                  <p className="ml-9 text-xs text-muted-foreground">
-                    Best match (cosine {c.bestMatch.similarity.toFixed(2)}):{" "}
-                    <span className="text-foreground">
-                      {truncate(c.bestMatch.bullet.text, 140)}
-                    </span>
+            {scores.hardRequirements.requirements.map((req, i) => (
+              <li
+                key={`${req.code}-${i}`}
+                className="flex items-start gap-4 py-4"
+              >
+                <PassFailDot passed={req.passed} />
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm leading-relaxed text-foreground">
+                    {req.detail}
                   </p>
-                )}
+                  <p className="text-xs text-muted-foreground">
+                    Source: {truncate(req.description, 130)}
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full border border-border bg-muted/50 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  {req.code.replace(/-/g, " ")}
+                </span>
               </li>
             ))}
           </ul>
-        </CardContent>
-      </Card>
+        )}
+      </ReportSection>
 
+      {/* Semantic coverage */}
+      <ReportSection
+        title="Semantic coverage"
+        eyebrow="Per requirement"
+        description="For each JD requirement we found the resume bullet with the highest semantic similarity. Coverage bands: well (cosine ≥ 0.7), weak (0.5–0.7), uncovered (< 0.5)."
+      >
+        <ul className="divide-y divide-border">
+          {scores.semantic.coverage.map((c, i) => (
+            <li key={i} className="space-y-2 py-4">
+              <div className="flex items-start gap-3">
+                <CoveragePill band={c.band} />
+                <p className="flex-1 text-sm leading-relaxed text-foreground">
+                  {c.requirement.text}
+                </p>
+              </div>
+              {c.bestMatch && (
+                <p className="ml-[5.25rem] text-xs leading-relaxed text-muted-foreground">
+                  Best match{" "}
+                  <span className="font-mono text-[11px]">
+                    cos {c.bestMatch.similarity.toFixed(2)}
+                  </span>
+                  {" — "}
+                  <span className="text-foreground">
+                    {truncate(c.bestMatch.bullet.text, 140)}
+                  </span>
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      </ReportSection>
+
+      {/* Parseability issues */}
       {scores.parseability.issues.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Parseability issues</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-3">
-              {scores.parseability.issues.map((issue) => (
-                <li key={issue.code} className="flex items-start gap-3">
-                  <SeverityDot severity={issue.severity} />
-                  <div>
-                    <p className="text-sm">{issue.message}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      −{issue.penalty} points · {issue.severity} severity
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
+        <ReportSection
+          title="Parseability issues"
+          eyebrow="Formatting"
+          description="Each issue deducts a fixed number of points from a starting score of 100. Severities are ranked by how much real ATS software typically struggles with each."
+        >
+          <ul className="space-y-4">
+            {scores.parseability.issues.map((issue) => (
+              <li
+                key={issue.code}
+                className="flex items-start gap-4 rounded-md border border-border bg-card p-4"
+              >
+                <SeverityDot severity={issue.severity} />
+                <div className="flex-1">
+                  <p className="text-sm leading-relaxed text-foreground">
+                    {issue.message}
+                  </p>
+                  <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+                    −{issue.penalty} points · {issue.severity} severity
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </ReportSection>
       )}
 
-      <Separator />
-      <p className="text-xs text-muted-foreground">
+      <p className="border-t border-border pt-8 text-xs leading-relaxed text-muted-foreground">
         No real ATS — paid or free — produces a single &ldquo;true&rdquo;
         score, because real ATSes do not share a unified scoring standard.
-        These four dimensions are heuristics that highlight specific gaps you
-        can act on.
+        These four dimensions are heuristics that highlight specific gaps
+        you can act on.
       </p>
     </div>
   );
-}
 
-function CompositeCard({ composite }: { composite: number }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Composite</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-6xl font-semibold tabular-nums">{composite}</p>
-        <p className="mt-1 text-xs text-muted-foreground">out of 100</p>
-        <p className="mt-4 text-xs text-muted-foreground">
-          Weighted average of the four dimensions. Always shown alongside its
-          components — never alone — because a single number hides where the
-          gap is.
+  function CompositeBlock({ composite }: { composite: number }) {
+    const bandTextCls = BAND_TEXT_CLASS[compositeBand];
+    return (
+      <div>
+        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          Composite score
         </p>
-        <ul className="mt-4 space-y-1 text-xs text-muted-foreground">
-          <li>Keyword 30% · Semantic 30%</li>
-          <li>Hard requirements 25% · Parseability 15%</li>
-        </ul>
-      </CardContent>
-    </Card>
-  );
+        <div className="mt-3 flex items-baseline gap-4">
+          <span
+            className={`display tabular-nums leading-none ${bandTextCls}`}
+            style={{ fontSize: "clamp(96px, 13vw, 144px)" }}
+          >
+            {composite}
+          </span>
+          <span className="font-mono text-sm uppercase tracking-[0.18em] text-muted-foreground">
+            / 100
+          </span>
+        </div>
+        <p className="mt-4 max-w-md text-base leading-relaxed text-foreground">
+          {compositeInterpretation(composite)}
+        </p>
+        <p className="mt-3 font-mono text-xs leading-relaxed text-muted-foreground">
+          Keyword 30% · Semantic 30% · Hard requirements 25% · Parseability 15%
+        </p>
+      </div>
+    );
+  }
 }
 
 function DimensionCard({
@@ -257,39 +260,88 @@ function DimensionCard({
   weight: number;
   subtitle: string;
 }) {
+  const band = bandFor(score);
+  // Top accent stripe in the band color — uses raw CSS-var reference so we
+  // don't have to invent a new Tailwind utility for every band.
+  const stripeColor = `var(--score-${band})`;
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-3xl font-semibold tabular-nums">{score}</p>
-        <p className="mt-1 text-[11px] text-muted-foreground uppercase tracking-wider">
-          {Math.round(weight * 100)}% weight
-        </p>
-        <p className="mt-3 text-xs text-muted-foreground">{subtitle}</p>
-      </CardContent>
-    </Card>
+    <div className="relative overflow-hidden rounded-md border border-border bg-card p-5">
+      <span
+        className="absolute inset-x-0 top-0 h-[2px]"
+        style={{ background: stripeColor }}
+        aria-hidden
+      />
+      <p className="text-xs font-medium tracking-wide text-muted-foreground">
+        {title}
+      </p>
+      <p
+        className={`mt-3 display tabular-nums text-5xl leading-none ${BAND_TEXT_CLASS[band]}`}
+      >
+        {score}
+      </p>
+      <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+        {Math.round(weight * 100)}% weight
+      </p>
+      <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+        {subtitle}
+      </p>
+    </div>
   );
 }
 
-function CoverageBadge({ band }: { band: "well" | "weak" | "uncovered" }) {
-  const styles =
-    band === "well"
-      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
-      : band === "weak"
-        ? "bg-amber-500/15 text-amber-700 dark:text-amber-400"
-        : "bg-destructive/15 text-destructive";
-  const label =
-    band === "well" ? "Well" : band === "weak" ? "Weak" : "Uncovered";
+function ReportSection({
+  title,
+  eyebrow,
+  description,
+  children,
+}: {
+  title: string;
+  eyebrow: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-4">
+      <header className="space-y-1">
+        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+          {eyebrow}
+        </p>
+        <h3 className="display text-xl text-foreground">{title}</h3>
+        <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          {description}
+        </p>
+      </header>
+      {children}
+    </section>
+  );
+}
+
+function PassFailDot({ passed }: { passed: boolean }) {
   return (
     <span
-      className={[
-        "mt-0.5 inline-flex h-6 w-16 shrink-0 items-center justify-center rounded-full text-[10px] font-medium uppercase tracking-wider",
-        styles,
-      ].join(" ")}
+      className={`mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ${
+        passed
+          ? "bg-score-strong/12 text-score-strong"
+          : "bg-score-poor/12 text-score-poor"
+      }`}
+      aria-label={passed ? "passed" : "failed"}
+    >
+      {passed ? "✓" : "✗"}
+    </span>
+  );
+}
+
+function CoveragePill({ band }: { band: "well" | "weak" | "uncovered" }) {
+  const styles =
+    band === "well"
+      ? "bg-score-strong/10 text-score-strong"
+      : band === "weak"
+        ? "bg-score-decent/12 text-score-decent"
+        : "bg-score-poor/12 text-score-poor";
+  const label = band === "well" ? "Well" : band === "weak" ? "Weak" : "Uncovered";
+  return (
+    <span
+      className={`mt-0.5 inline-flex h-5 w-[4.75rem] shrink-0 items-center justify-center rounded-full font-mono text-[10px] font-medium uppercase tracking-[0.12em] ${styles}`}
     >
       {label}
     </span>
@@ -299,13 +351,13 @@ function CoverageBadge({ band }: { band: "well" | "weak" | "uncovered" }) {
 function SeverityDot({ severity }: { severity: "high" | "medium" | "low" }) {
   const color =
     severity === "high"
-      ? "bg-destructive"
+      ? "bg-score-poor"
       : severity === "medium"
-        ? "bg-amber-500"
+        ? "bg-score-decent"
         : "bg-muted-foreground";
   return (
     <span
-      className={`mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full ${color}`}
+      className={`mt-2 inline-block h-1.5 w-1.5 shrink-0 rounded-full ${color}`}
       aria-label={`${severity} severity`}
     />
   );

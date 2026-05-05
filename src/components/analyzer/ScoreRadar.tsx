@@ -28,27 +28,45 @@ export function ScoreRadar({
     { dimension: "Hard Reqs", score: hardRequirements },
     { dimension: "Parseability", score: parseability },
   ];
+
+  // Inline color references so the radar matches the deep-green accent
+  // from the design tokens. We deliberately avoid Tailwind class names
+  // here — recharts SVG primitives need raw color strings.
+  const accent = "#1F4434";
+  const accentSoft = "#1F443422"; // ~13% alpha
+  const grid = "#E6E4DD";
+  const axisColor = "#6B6B66";
+
   return (
     <div className="h-72 w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <RadarChart data={data} outerRadius="75%">
-          <PolarGrid stroke="currentColor" className="text-border" />
+        <RadarChart data={data} outerRadius="72%">
+          <PolarGrid stroke={grid} strokeDasharray="2 4" />
           <PolarAngleAxis
             dataKey="dimension"
-            tick={{ fill: "currentColor", fontSize: 12 }}
-            className="text-muted-foreground"
+            tick={{
+              fill: axisColor,
+              fontSize: 11,
+              fontFamily: "var(--font-geist-sans)",
+              letterSpacing: "0.04em",
+            }}
+            tickLine={false}
+            axisLine={{ stroke: grid }}
           />
           <PolarRadiusAxis
             domain={[0, 100]}
-            tick={{ fill: "currentColor", fontSize: 10 }}
-            className="text-muted-foreground"
+            tick={false}
+            axisLine={false}
+            tickCount={5}
           />
           <Radar
             dataKey="score"
-            stroke="currentColor"
-            fill="currentColor"
-            fillOpacity={0.2}
-            className="text-foreground"
+            stroke={accent}
+            strokeWidth={1.5}
+            fill={accentSoft}
+            fillOpacity={1}
+            isAnimationActive={false}
+            dot={{ fill: accent, r: 3, stroke: "transparent" }}
           />
         </RadarChart>
       </ResponsiveContainer>

@@ -3,9 +3,9 @@
 import {
   Bar,
   BarChart,
-  CartesianGrid,
+  Cell,
+  LabelList,
   ResponsiveContainer,
-  Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
@@ -16,23 +16,18 @@ interface Props {
   limit?: number;
 }
 
+const ACCENT = "#1F4434";
+const AXIS = "#6B6B66";
+
 /**
- * Top missing JD keywords by weight, rendered as a horizontal bar chart so
- * long phrases stay readable. Caps at `limit` items (default 10) — the
- * report is meant to be actionable, not exhaustive.
+ * Top missing JD keywords by weight, rendered as a horizontal bar chart.
+ * Bar opacity scales linearly across the visible set (heaviest = full
+ * opacity, lightest ≈ 50%) so the eye reads weight even before the mono
+ * weight label at the bar end. Caps at `limit` items (default 10).
  */
 export function MissingKeywordsBar({ missing, limit = 10 }: Props) {
-  const data = [...missing]
-    .sort((a, b) => b.weight - a.weight)
-    .slice(0, limit)
-    .map((k) => ({
-      surface: k.surface,
-      weight: k.weight,
-      classification: k.classification,
-    }))
-    .reverse(); // Recharts renders bottom-up; reverse so heaviest is on top.
-
-  if (data.length === 0) {
+  const top = [...missing].sort((a, b) => b.weight - a.weight).slice(0, limit);
+  if (top.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
         No missing keywords detected — every JD keyword we extracted appears
@@ -41,41 +36,64 @@ export function MissingKeywordsBar({ missing, limit = 10 }: Props) {
     );
   }
 
-  const height = Math.max(180, data.length * 32 + 40);
+  const maxWeight = top[0]?.weight ?? 1;
+  const minWeight = top[top.length - 1]?.weight ?? 0;
+  const range = Math.max(maxWeight - minWeight, 0.001);
+
+  // Render bottom-up in recharts vertical layout, so reverse so the
+  // heaviest item ends up visually on top.
+  const data = [...top]
+    .reverse()
+    .map((k) => ({
+      surface: k.surface,
+      weight: k.weight,
+      classification: k.classification,
+      // Opacity in [0.5, 1.0] linearly interpolated by weight rank.
+      opacity: 0.5 + 0.5 * ((k.weight - minWeight) / range),
+    }));
+
+  const height = Math.max(180, data.length * 36 + 24);
 
   return (
     <div style={{ height }} className="w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart layout="vertical" data={data} margin={{ left: 8, right: 24 }}>
-          <CartesianGrid stroke="currentColor" className="text-border" strokeDasharray="3 3" horizontal={false} />
-          <XAxis
-            type="number"
-            tick={{ fill: "currentColor", fontSize: 11 }}
-            className="text-muted-foreground"
-          />
+        <BarChart
+          layout="vertical"
+          data={data}
+          margin={{ left: 0, right: 56, top: 4, bottom: 4 }}
+          barCategoryGap={6}
+        >
+          <XAxis type="number" hide domain={[0, maxWeight * 1.05]} />
           <YAxis
             type="category"
             dataKey="surface"
-            width={140}
-            tick={{ fill: "currentColor", fontSize: 12 }}
-            className="text-foreground"
-          />
-          <Tooltip
-            cursor={{ fill: "rgba(0,0,0,0.04)" }}
-            contentStyle={{
-              background: "var(--background)",
-              border: "1px solid var(--border)",
-              borderRadius: 6,
-              fontSize: 12,
-            }}
-            formatter={(value, _name, item) => {
-              const num = typeof value === "number" ? value : Number(value);
-              const cls = (item.payload as { classification?: string })
-                .classification;
-              return [`${num.toFixed(2)} (${cls ?? ""})`, "weight"];
+            width={150}
+            tickLine={false}
+            axisLine={false}
+            tick={{
+              fill: "#0A0A0A",
+              fontSize: 13,
+              fontFamily: "var(--font-geist-sans)",
             }}
           />
-          <Bar dataKey="weight" fill="currentColor" className="text-foreground" radius={[0, 4, 4, 0]} />
+          <Bar dataKey="weight" radius={[0, 3, 3, 0]} isAnimationActive={false}>
+            {data.map((d, i) => (
+              <Cell key={i} fill={ACCENT} fillOpacity={d.opacity} />
+            ))}
+            <LabelList
+              dataKey="weight"
+              position="right"
+              formatter={(value) =>
+                typeof value === "number" ? value.toFixed(1) : String(value ?? "")
+              }
+              style={{
+                fill: AXIS,
+                fontSize: 11,
+                fontFamily: "var(--font-geist-mono)",
+                letterSpacing: "0.02em",
+              }}
+            />
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>
