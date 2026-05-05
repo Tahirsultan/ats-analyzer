@@ -132,11 +132,12 @@ export function AnalyzerWorkflow({ initialDemo = false }: Props) {
       });
       dispatch({ type: "complete", report });
     } catch (err) {
-      dispatch({
-        type: "fail",
-        message:
-          err instanceof Error ? err.message : "Unknown analysis failure.",
-      });
+      console.error("[ATS Analyzer] analysis failed:", err);
+      const detail =
+        err instanceof Error
+          ? `${err.message}${err.stack ? `\n\n${err.stack.split("\n").slice(0, 4).join("\n")}` : ""}`
+          : "Unknown analysis failure.";
+      dispatch({ type: "fail", message: detail });
     }
   }, [state]);
 
@@ -174,7 +175,15 @@ export function AnalyzerWorkflow({ initialDemo = false }: Props) {
       {state.kind === "failed" && (
         <Alert variant="destructive">
           <AlertTitle>Analysis failed</AlertTitle>
-          <AlertDescription>{state.error}</AlertDescription>
+          <AlertDescription>
+            <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap text-xs">
+              {state.error}
+            </pre>
+            <p className="mt-3 text-xs">
+              Check the browser console for the full stack. Reload to try
+              again — the model may have failed to download.
+            </p>
+          </AlertDescription>
         </Alert>
       )}
 

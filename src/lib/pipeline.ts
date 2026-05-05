@@ -80,39 +80,53 @@ export async function runAnalysis(input: AnalysisInput): Promise<AnalysisReport>
   const { resume, jdText, embedder, onStage } = input;
 
   onStage?.("parsing");
-  const resumeDoc = await parseResume(resume);
+  const resumeDoc = await step("parsing", () => parseResume(resume));
 
   onStage?.("structuring");
-  const resumeStructure = analyzeResumeStructure(resumeDoc);
+  const resumeStructure = await step("structuring", async () =>
+    analyzeResumeStructure(resumeDoc),
+  );
 
   onStage?.("extracting-jd");
-  const jdAnalysis = analyzeJobDescription(jdText);
+  const jdAnalysis = await step("extracting-jd", async () =>
+    analyzeJobDescription(jdText),
+  );
 
   onStage?.("scoring-deterministic");
-  const keywords = extractJdKeywords(jdAnalysis);
-  const keywordResult = computeKeywordMatch(resumeStructure.document.text, keywords);
-  const hardReqs = extractHardRequirements(jdAnalysis);
-  const hardResult = checkHardRequirements(resumeStructure, hardReqs);
+  const keywords = await step("extract-jd-keywords", async () =>
+    extractJdKeywords(jdAnalysis),
+  );
+  const keywordResult = await step("keyword-match", async () =>
+    computeKeywordMatch(resumeStructure.document.text, keywords),
+  );
+  const hardReqs = await step("extract-hard-requirements", async () =>
+    extractHardRequirements(jdAnalysis),
+  );
+  const hardResult = await step("check-hard-requirements", async () =>
+    checkHardRequirements(resumeStructure, hardReqs),
+  );
   const hasExperience = resumeStructure.sections.some(
     (s) => s.kind === "experience",
   );
   const hasAnyRecognized = resumeStructure.sections.some(
     (s) => s.kind !== "header" && s.kind !== "other",
   );
-  const parseability = computeParseability({
-    document: resumeStructure.document,
-    contactFields: resumeStructure.contactFieldsFound,
-    hasExperienceSection: hasExperience,
-    hasAnyRecognizedSection: hasAnyRecognized,
-  });
+  const parseability = await step("parseability", async () =>
+    computeParseability({
+      document: resumeStructure.document,
+      contactFields: resumeStructure.contactFieldsFound,
+      hasExperienceSection: hasExperience,
+      hasAnyRecognizedSection: hasAnyRecognized,
+    }),
+  );
 
   onStage?.("embedding");
-  const bullets = extractResumeBullets(resumeStructure);
+  const bullets = await step("extract-bullets", async () =>
+    extractResumeBullets(resumeStructure),
+  );
   onStage?.("scoring-semantic");
-  const semantic = await computeSemanticScore(
-    jdAnalysis.requirements,
-    bullets,
-    embedder,
+  const semantic = await step("semantic-score", () =>
+    computeSemanticScore(jdAnalysis.requirements, bullets, embedder),
   );
 
   const composite = Math.round(
@@ -144,6 +158,24 @@ async function parseResume(
     return parseDocument(input.content, input.format);
   }
   return parseDocument(input.content, input.format as DocumentFormat);
+}
+
+/**
+ * Wrap a pipeline step so any failure re-throws with a label identifying
+ * which stage broke. Without this, "Cannot convert undefined or null to
+ * object" coming from deep inside transformers.js looks identical to the
+ * same error coming from a regex pass — and we waste an afternoon
+ * bisecting.
+ */
+async function step<T>(label: string, fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (err) {
+    const orig = err instanceof Error ? err : new Error(String(err));
+    const wrapped = new Error(`[${label}] ${orig.message}`);
+    if (orig.stack) wrapped.stack = orig.stack;
+    throw wrapped;
+  }
 }
 
 export { COMPOSITE_WEIGHTS };
