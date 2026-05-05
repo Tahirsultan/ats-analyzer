@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScoreRadar } from "./ScoreRadar";
 import { MissingKeywordsBar } from "./MissingKeywordsBar";
+import { ExportActions } from "./ExportActions";
 import type { AnalysisReport } from "@/lib/pipeline";
 import { COMPOSITE_WEIGHTS } from "@/lib/pipeline";
 
@@ -22,7 +23,7 @@ export function ReportView({ report, onReset }: Props) {
   const { scores } = report;
   return (
     <div className="space-y-8">
-      <header className="flex items-start justify-between gap-6">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight">Report</h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -30,12 +31,15 @@ export function ReportView({ report, onReset }: Props) {
             the dimensions below it are more informative.
           </p>
         </div>
-        <button
-          onClick={onReset}
-          className="text-sm text-muted-foreground underline hover:text-foreground"
-        >
-          Run a new analysis
-        </button>
+        <div className="flex flex-col items-start gap-3 lg:items-end">
+          <ExportActions report={report} />
+          <button
+            onClick={onReset}
+            className="text-sm text-muted-foreground underline hover:text-foreground"
+          >
+            Run a new analysis
+          </button>
+        </div>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[2fr_3fr]">

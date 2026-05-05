@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = "https://ats-analyzer.vercel.app";
+const siteUrl = "https://ats-analyzer-gamma.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -69,9 +69,19 @@ export default function RootLayout({
         <footer className="border-t border-border">
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-6 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
             <p>Runs entirely in your browser. No uploads. No tracking.</p>
-            <Link href="/methodology" className="hover:text-foreground">
-              How scoring works →
-            </Link>
+            <div className="flex items-center gap-5">
+              <Link href="/methodology" className="hover:text-foreground">
+                Methodology
+              </Link>
+              <a
+                href="https://github.com/Tahirsultan/ats-analyzer"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-foreground"
+              >
+                GitHub
+              </a>
+            </div>
           </div>
         </footer>
       </body>
