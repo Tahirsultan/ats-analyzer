@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 
 export const metadata: Metadata = {
   title: "Analyze",
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
 export default function AnalyzePage() {
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-16">
+      <ServiceWorkerRegistrar />
       <h1 className="text-3xl font-semibold tracking-tight">Analyze</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
         Upload a resume and paste or upload a job description. Everything is
@@ -16,8 +18,9 @@ export default function AnalyzePage() {
       </p>
 
       <div className="mt-10 rounded-xl border border-dashed border-border bg-muted/40 p-8 text-sm text-muted-foreground">
-        Phase 1 placeholder. The upload form, parsers, and scoring engines
-        arrive in Phases 2 through 5.
+        Phase 4 placeholder. The upload form and report UI arrive in Phase 5;
+        parsers and scoring engines are already in place under{" "}
+        <code>src/lib/</code>.
       </div>
     </div>
   );
