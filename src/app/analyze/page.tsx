@@ -27,7 +27,17 @@ function AnalyzePageInner() {
           is processed locally in your browser — no files leave your device.
         </p>
         <div className="mt-10">
-          <AnalyzerWorkflow initialDemo={demo} />
+          {/*
+            Key by the demo flag so navigating between /analyze and
+            /analyze?demo=1 forces a fresh component instance. Without this
+            the reducer's state (including the loaded demo resume + JD)
+            persists across the URL change, leaking demo content into a
+            user's "I want to analyze my own resume" flow.
+          */}
+          <AnalyzerWorkflow
+            key={demo ? "demo" : "fresh"}
+            initialDemo={demo}
+          />
         </div>
       </div>
     </MobileGate>
