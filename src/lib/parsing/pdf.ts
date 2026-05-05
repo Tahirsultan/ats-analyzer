@@ -37,15 +37,27 @@ interface PdfTextItem {
 }
 
 /**
+ * pdf.js worker URL pinned to the same patch version as the npm package
+ * (see package.json). Loaded from jsDelivr's npm mirror — same-origin
+ * caching via service worker, ~1MB compressed. Pinning the version means
+ * the worker matches the main library's serialization format exactly.
+ */
+const PDFJS_WORKER_URL =
+  "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.7.284/legacy/build/pdf.worker.mjs";
+
+/**
  * Parse a PDF ArrayBuffer to plain text plus structural signals. Runs in any
  * environment that supports pdfjs-dist's legacy build (browser, jsdom, Node).
  */
 export async function parsePdf(buffer: ArrayBuffer): Promise<ParsedDocument> {
-  // Dynamic import keeps pdfjs out of the server-render bundle and lets the
-  // legacy build resolve at test time. Callers (browser bundler / test
-  // setup) are responsible for setting `GlobalWorkerOptions.workerSrc`
-  // before this is invoked.
   const pdfjs = await loadPdfJs();
+  // pdfjs needs `GlobalWorkerOptions.workerSrc` set before the first
+  // `getDocument` call. The worker is a separate file the library spawns
+  // a Web Worker from. In tests we wire it up via vitest.setup.ts; in the
+  // browser we point at jsDelivr at the matching version.
+  if (typeof window !== "undefined" && !pdfjs.GlobalWorkerOptions.workerSrc) {
+    pdfjs.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
+  }
 
   let doc;
   try {

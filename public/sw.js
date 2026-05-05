@@ -12,6 +12,7 @@ const MODEL_URL_PATTERNS = [
   /^https:\/\/esm\.sh\/@xenova\/transformers/,
   /^https:\/\/esm\.sh\/.*onnxruntime/,
   /^https:\/\/esm\.sh\/v\d+\/@xenova\/transformers/,
+  /^https:\/\/cdn\.jsdelivr\.net\/npm\/pdfjs-dist@/,
 ];
 
 self.addEventListener("install", () => {
