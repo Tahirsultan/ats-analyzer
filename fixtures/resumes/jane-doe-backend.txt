@@ -1,0 +1,38 @@
+Jane Doe
+Senior Backend Engineer
+jane.doe@example.com | (555) 123-4567 | San Francisco, CA | linkedin.com/in/janedoe-fictional
+
+SUMMARY
+Backend engineer with 7 years of experience building distributed systems in Go and Python.
+Led platform teams at two startups through significant scale milestones. Strong on
+observability, database internals, and pragmatic API design.
+
+EXPERIENCE
+
+Staff Backend Engineer — Acme Corp
+San Francisco, CA | March 2022 – Present
+- Designed and shipped a sharded PostgreSQL multi-tenancy layer serving 40M monthly users.
+- Reduced p99 API latency from 820ms to 180ms by introducing query plan caching and connection pool tuning.
+- Mentored 4 mid-level engineers; ran weekly internals reading group on database storage engines.
+- Owned the production incident review process; cut mean time to resolution by 35%.
+
+Senior Software Engineer — Helix Analytics
+Remote | July 2019 – February 2022
+- Built the event ingestion pipeline (Kafka, Go) handling 2B events/day with at-least-once guarantees.
+- Migrated billing service from monolithic Rails to a Go microservice; eliminated nightly outage class.
+- Led the on-call rotation overhaul, including runbook standardization and SLO definitions.
+
+Software Engineer — NovaCart
+Boston, MA | August 2017 – June 2019
+- Wrote checkout service in Python (FastAPI) handling Black Friday peaks of 8K req/s.
+- Implemented idempotency keys across payment flows; eliminated duplicate-charge support tickets.
+
+EDUCATION
+
+B.S. Computer Science — University of Illinois Urbana-Champaign
+2013 – 2017 | GPA 3.7
+
+SKILLS
+Languages: Go, Python, SQL, TypeScript
+Infrastructure: PostgreSQL, Kafka, Redis, Kubernetes, AWS (RDS, EKS, S3, SQS), Terraform
+Practices: Distributed systems, observability (OpenTelemetry, Prometheus), incident response

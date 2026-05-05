@@ -1,0 +1,41 @@
+Priya Rao
+Data Scientist
+priya.rao@example.com | (555) 246-1357 | Austin, TX
+
+SUMMARY
+Data scientist with 4 years of experience turning messy product data into shipped
+models. Comfortable across the stack from SQL to deployed inference services.
+
+EXPERIENCE
+
+Data Scientist — Helix Analytics
+Austin, TX | June 2022 – Present
+- Shipped a customer-churn prediction model (XGBoost) used by the customer success team weekly.
+- Built feature engineering pipelines in dbt, processing 50+ tables nightly into a feature store.
+- Ran A/B test analysis for product launches; collaborated with PMs on experiment design.
+- Wrote internal tooling in Python (Streamlit) for self-service cohort analysis.
+
+Junior Data Scientist — NovaCart
+Remote | August 2020 – May 2022
+- Maintained the recommendation system retraining pipeline (Airflow, Python).
+- Did exploratory analysis for marketing on attribution and lifetime value.
+- Replaced a brittle Excel-based forecasting workflow with a Python notebook reviewed monthly.
+
+Data Analyst Intern — Acme Corp
+San Francisco, CA | June 2019 – August 2019
+- Built a Tableau dashboard for the operations team tracking warehouse throughput.
+- Wrote ad-hoc SQL for cross-team data requests.
+
+EDUCATION
+
+M.S. Statistics — University of Texas at Austin
+2018 – 2020
+
+B.S. Mathematics — University of California San Diego
+2014 – 2018
+
+SKILLS
+Languages: Python, SQL, R
+ML: scikit-learn, XGBoost, LightGBM, PyTorch (familiar)
+Data: dbt, Airflow, Snowflake, Postgres, Pandas
+Other: A/B testing, experiment design, Streamlit, Tableau

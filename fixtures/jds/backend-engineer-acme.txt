@@ -1,0 +1,35 @@
+Senior Backend Engineer — Acme Corp
+
+Acme Corp is hiring a Senior Backend Engineer to join our Platform team. You'll
+own critical pieces of our distributed infrastructure and help us scale through
+the next order of magnitude.
+
+About the role
+You'll work on multi-tenant data systems, internal APIs used by every product
+team, and the observability stack that keeps us honest. Expect to be deep in
+PostgreSQL internals, queue topologies, and incident response.
+
+Required qualifications
+- 5+ years of professional backend engineering experience.
+- Strong proficiency in Go or Python; willingness to work fluently in both.
+- Production experience with PostgreSQL at scale, including query optimization and replication.
+- Experience designing and operating distributed systems with Kafka or an equivalent messaging platform.
+- Solid understanding of observability tooling (OpenTelemetry, Prometheus, structured logging).
+- Bachelor's degree in Computer Science, a related field, or equivalent practical experience.
+- Must be authorized to work in the United States.
+
+Preferred qualifications
+- Experience with Kubernetes in production.
+- Familiarity with infrastructure as code (Terraform).
+- Background mentoring engineers or leading on-call programs is a plus.
+- Exposure to high-traffic e-commerce or payments systems would be ideal.
+
+Responsibilities
+- Design and ship resilient backend services consumed by internal teams.
+- Drive performance work across the API surface, including latency reduction and capacity planning.
+- Lead incident response for systems you own and improve our postmortem culture.
+- Mentor mid-level and junior engineers on the team.
+
+Location
+Hybrid in San Francisco, CA. Remote within the United States is also acceptable
+for exceptional candidates. Some travel (less than 10%) for offsites.

@@ -1,0 +1,32 @@
+Senior Data Scientist (Forecasting) — Helix Analytics
+
+Helix Analytics is hiring a Senior Data Scientist with deep forecasting and
+time-series expertise. You'll own demand and revenue forecasting models that
+inform planning across the company.
+
+Required
+- 5+ years of professional data science experience, with at least 2 years focused on forecasting or time series.
+- Expert-level Python (pandas, scikit-learn, statsmodels) and SQL.
+- Hands-on experience with classical time-series methods (ARIMA, ETS, Prophet) and modern approaches (gradient-boosted models, deep-learning sequence models).
+- Strong causal inference and experimentation background; proven track record running rigorous A/B tests.
+- M.S. or Ph.D. in Statistics, Computer Science, Economics, or a quantitative field is required.
+- AWS Certified Machine Learning – Specialty or equivalent cloud ML certification is required prior to start.
+- Must be authorized to work in the United States; this role is not eligible for sponsorship.
+
+Preferred
+- Experience deploying models to production with MLflow, SageMaker, or an in-house platform.
+- Familiarity with dbt and modern data warehouses (Snowflake or BigQuery).
+- Prior work with hierarchical or grouped forecasting at SKU or store level.
+- Experience presenting to executive stakeholders.
+
+Responsibilities
+- Build, evaluate, and operate forecasting models for revenue, demand, and capacity planning.
+- Partner with finance and operations to integrate forecasts into planning cycles.
+- Run experiments that change how the company invests across channels.
+- Establish standards for model evaluation, monitoring, and retraining.
+
+Travel
+Up to 15% travel to our HQ in Austin, TX, for quarterly planning offsites.
+
+Education
+Required: M.S. or Ph.D. in a quantitative field.

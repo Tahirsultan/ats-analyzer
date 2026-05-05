@@ -1,0 +1,35 @@
+Senior Frontend Engineer — NovaCart
+
+NovaCart is looking for a Senior Frontend Engineer to help us reimagine our
+storefront experience. You'll work closely with design, backend, and product
+to ship features that millions of shoppers see every day.
+
+What you'll do
+- Build new features in React and Next.js across the storefront and account areas.
+- Partner with our design system team on the next major version of our component library.
+- Champion accessibility, performance, and code quality across the frontend codebase.
+- Mentor other engineers through code review and pairing.
+
+Must have
+- 4+ years of professional frontend engineering experience.
+- Deep proficiency with React and modern TypeScript.
+- Experience shipping production Next.js applications.
+- Strong understanding of web performance fundamentals (Core Web Vitals, bundle size, runtime profiling).
+- Demonstrated commitment to web accessibility (WCAG 2.1 AA or better).
+
+Nice to have
+- Experience working in a design system or shared component library.
+- Familiarity with Tailwind CSS and class-variance-authority.
+- E2E testing experience with Playwright or Cypress.
+- Background in e-commerce, marketplaces, or consumer products is ideal.
+- Familiarity with Storybook and visual regression testing would be a plus.
+
+Soft skills we value
+- Strong written communication; you can explain a tradeoff in a Slack message.
+- Comfort owning ambiguous problems end to end.
+- A bias toward shipping iteratively over polishing in private.
+
+Logistics
+Remote within the US, or hybrid out of our Seattle, WA office. No relocation
+assistance offered. Must be eligible to work in the United States without
+sponsorship.
