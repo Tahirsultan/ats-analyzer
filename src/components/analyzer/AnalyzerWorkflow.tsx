@@ -191,7 +191,7 @@ export function AnalyzerWorkflow({ initialDemo = false }: Props) {
         <RunningPanel stage={state.stage} modelProgress={state.modelProgress} />
       )}
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-2">
         <Button
           size="lg"
           onClick={start}
@@ -200,17 +200,28 @@ export function AnalyzerWorkflow({ initialDemo = false }: Props) {
             !state.resume ||
             state.jd.trim().length === 0
           }
+          className="disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary"
         >
           {state.kind === "running" ? "Analyzing…" : "Analyze"}
         </Button>
-        <p className="text-xs text-muted-foreground">
-          First analysis downloads a ~25MB language model. Subsequent ones
-          use the cached copy.
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          First run downloads a ~25MB language model. Subsequent runs use
+          the cached copy.
         </p>
       </div>
     </div>
   );
 }
+
+const STAGES: { key: AnalysisStage; label: string }[] = [
+  { key: "parsing", label: "Parsing resume" },
+  { key: "structuring", label: "Detecting sections and experience" },
+  { key: "extracting-jd", label: "Extracting JD requirements" },
+  { key: "scoring-deterministic", label: "Computing keyword and hard-requirement scores" },
+  { key: "embedding", label: "Preparing semantic model" },
+  { key: "scoring-semantic", label: "Computing semantic similarity" },
+  { key: "done", label: "Done" },
+];
 
 function RunningPanel({
   stage,
@@ -219,32 +230,32 @@ function RunningPanel({
   stage: AnalysisStage;
   modelProgress: EmbedderProgress | null;
 }) {
-  const stages: { key: AnalysisStage; label: string }[] = [
-    { key: "parsing", label: "Parsing resume" },
-    { key: "structuring", label: "Detecting sections & experience" },
-    { key: "extracting-jd", label: "Extracting JD requirements" },
-    { key: "scoring-deterministic", label: "Computing keyword + hard-req scores" },
-    { key: "embedding", label: "Loading semantic model" },
-    { key: "scoring-semantic", label: "Computing semantic similarity" },
-    { key: "done", label: "Done" },
-  ];
-  const currentIdx = stages.findIndex((s) => s.key === stage);
-  const pct = Math.round(((currentIdx + 1) / stages.length) * 100);
+  const currentIdx = STAGES.findIndex((s) => s.key === stage);
+  const pct = Math.round(((currentIdx + 1) / STAGES.length) * 100);
+  const isModelDownloading = modelProgress?.kind === "downloading";
+
   return (
-    <div className="space-y-3 rounded-xl border border-border bg-muted/40 p-6">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium">
-          {stages[currentIdx]?.label ?? "Working"}…
+    <div className="rounded-md border border-border bg-card">
+      <div className="space-y-4 px-6 py-5">
+        <div className="flex items-baseline justify-between gap-4">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            Working
+          </p>
+          <p className="font-mono text-[11px] tabular-nums text-muted-foreground">
+            {pct}%
+          </p>
+        </div>
+        <p className="text-base text-foreground">
+          {STAGES[currentIdx]?.label ?? "Working"}…
         </p>
-        <p className="text-xs text-muted-foreground tabular-nums">{pct}%</p>
+        <Progress value={pct} className="h-1 [&>div]:bg-primary" />
+        {isModelDownloading && (
+          <ModelDownloadIndicator progress={modelProgress} />
+        )}
+        <p className="text-xs text-muted-foreground">
+          All processing happens in your browser. Nothing is uploaded.
+        </p>
       </div>
-      <Progress value={pct} />
-      {modelProgress?.kind === "downloading" && (
-        <ModelDownloadIndicator progress={modelProgress} />
-      )}
-      <p className="text-xs text-muted-foreground">
-        All processing happens in your browser. Nothing is uploaded.
-      </p>
     </div>
   );
 }
@@ -258,12 +269,16 @@ function ModelDownloadIndicator({
   const loaded = progress.bytesLoaded;
   const pct = total > 0 ? Math.round((loaded / total) * 100) : null;
   return (
-    <p className="text-xs text-muted-foreground">
-      Downloading MiniLM model ·{" "}
-      {pct !== null
-        ? `${pct}% (${formatMb(loaded)} / ${formatMb(total)})`
-        : `${formatMb(loaded)} so far`}
-    </p>
+    <div className="rounded-sm border-l-2 border-primary bg-primary/5 px-3 py-2.5">
+      <p className="text-xs text-foreground">
+        Loading language model — one-time, ~25MB
+      </p>
+      <p className="mt-0.5 font-mono text-[11px] tabular-nums text-muted-foreground">
+        {pct !== null
+          ? `${pct}% · ${formatMb(loaded)} / ${formatMb(total)}`
+          : `${formatMb(loaded)} so far`}
+      </p>
+    </div>
   );
 }
 

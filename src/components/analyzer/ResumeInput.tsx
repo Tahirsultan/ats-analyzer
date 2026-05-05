@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { FileText } from "lucide-react";
 import { detectFormat } from "@/lib/parsing";
 import type { DocumentFormat } from "@/lib/parsing/types";
 
@@ -73,13 +74,18 @@ export function ResumeInput({ value, onChange, onError }: Props) {
 
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium">Resume</label>
+      <div className="mb-3 flex items-baseline justify-between">
+        <label className="text-sm font-medium text-foreground">Resume</label>
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          PDF · DOCX · TXT · MD
+        </span>
+      </div>
       <div
         className={[
-          "flex h-40 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed bg-muted/30 px-6 text-center transition-colors",
+          "group relative flex h-44 cursor-pointer flex-col items-center justify-center rounded-md border bg-card px-6 text-center transition-colors",
           dragOver
             ? "border-primary bg-primary/5"
-            : "border-border hover:border-foreground/30 hover:bg-muted/50",
+            : "border-border hover:border-foreground/30 hover:bg-muted/40",
         ].join(" ")}
         onDragOver={(e) => {
           e.preventDefault();
@@ -96,12 +102,18 @@ export function ResumeInput({ value, onChange, onError }: Props) {
       >
         {value ? (
           <>
-            <p className="text-sm font-medium">{value.filename}</p>
-            <p className="mt-1 text-xs text-muted-foreground uppercase tracking-wider">
+            <FileText
+              className="h-5 w-5 text-foreground"
+              strokeWidth={1.5}
+            />
+            <p className="mt-3 text-sm font-medium text-foreground">
+              {value.filename}
+            </p>
+            <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
               {value.format} · ready
             </p>
             <button
-              className="mt-3 text-xs text-muted-foreground underline hover:text-foreground"
+              className="mt-3 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
               onClick={(e) => {
                 e.stopPropagation();
                 onChange(null);
@@ -112,11 +124,15 @@ export function ResumeInput({ value, onChange, onError }: Props) {
           </>
         ) : (
           <>
-            <p className="text-sm font-medium">
+            <FileText
+              className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-foreground"
+              strokeWidth={1.5}
+            />
+            <p className="mt-3 text-sm font-medium text-foreground">
               Drop your resume here, or click to browse
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              PDF, DOCX, TXT, or MD · processed entirely in your browser
+            <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+              Processed entirely in your browser. Nothing is uploaded.
             </p>
           </>
         )}

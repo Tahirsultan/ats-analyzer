@@ -33,18 +33,21 @@ export function JobDescriptionInput({ value, onChange, onError }: Props) {
     [onChange, onError],
   );
 
+  const charCount = value.length;
+  const wordCount = value.trim().split(/\s+/).filter(Boolean).length;
+
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between">
-        <label className="text-sm font-medium" htmlFor="jd-textarea">
+      <div className="mb-3 flex items-baseline justify-between">
+        <label className="text-sm font-medium text-foreground" htmlFor="jd-textarea">
           Job description
         </label>
         <button
           type="button"
-          className="text-xs text-muted-foreground underline hover:text-foreground"
+          className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           onClick={() => inputRef.current?.click()}
         >
-          Upload .txt / .md
+          Upload TXT / MD
         </button>
         <input
           ref={inputRef}
@@ -62,15 +65,12 @@ export function JobDescriptionInput({ value, onChange, onError }: Props) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Paste the full job description here, or upload a TXT/MD file."
-        className="min-h-[160px] font-mono text-sm"
+        className="min-h-44 resize-y bg-card font-sans text-sm leading-relaxed"
       />
-      <p className="mt-2 text-xs text-muted-foreground">
+      <p className="mt-2 font-mono text-[11px] text-muted-foreground">
         {value.length === 0
-          ? "Including the requirements and preferred-qualifications sections gives the best results."
-          : `${value.length.toLocaleString()} characters · ${value
-              .trim()
-              .split(/\s+/)
-              .filter(Boolean).length.toLocaleString()} words`}
+          ? "Tip: include the requirements and preferred-qualifications sections for the best signal."
+          : `${charCount.toLocaleString()} chars · ${wordCount.toLocaleString()} words`}
       </p>
     </div>
   );
