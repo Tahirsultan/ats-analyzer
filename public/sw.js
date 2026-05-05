@@ -9,6 +9,9 @@ const CACHE_NAME = "ats-analyzer-models-v1";
 const MODEL_URL_PATTERNS = [
   /^https:\/\/huggingface\.co\/.*\/resolve\//,
   /^https:\/\/cdn-lfs\.huggingface\.co\//,
+  /^https:\/\/esm\.sh\/@xenova\/transformers/,
+  /^https:\/\/esm\.sh\/.*onnxruntime/,
+  /^https:\/\/esm\.sh\/v\d+\/@xenova\/transformers/,
 ];
 
 self.addEventListener("install", () => {
