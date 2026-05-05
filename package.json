@@ -11,14 +11,21 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "fixtures:generate": "node fixtures/scripts/generate.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "compromise": "^14.15.0",
     "lucide-react": "^1.14.0",
+    "mammoth": "^1.12.0",
     "next": "16.2.4",
+    "pdfjs-dist": "^5.7.284",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "shadcn": "^4.7.0",
@@ -27,12 +34,20 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^20",
+    "@types/pdfkit": "^0.17.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/ui": "^4.1.5",
+    "docx": "^9.6.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "jsdom": "^29.1.1",
+    "pdfkit": "^0.18.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.5"
   }
 }
