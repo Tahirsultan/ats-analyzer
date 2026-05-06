@@ -30,24 +30,24 @@ const siteUrl = "https://ats-analyzer-gamma.vercel.app";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "ATS Resume Analyzer — free, private, transparent",
+    default: "ATS Resume Analyzer — free, open, transparent",
     template: "%s · ATS Resume Analyzer",
   },
   description:
-    "Free, privacy-first ATS resume analyzer. Compares your resume against a job description entirely in your browser — your documents never leave your device.",
+    "Free, open-source ATS resume analyzer. Compare your resume against any job description and see the math behind every score — keyword match, semantic similarity, hard requirements, and parseability.",
   openGraph: {
-    title: "ATS Resume Analyzer — free, private, transparent",
+    title: "ATS Resume Analyzer — free, open, transparent",
     description:
-      "Free, privacy-first ATS resume analyzer that runs entirely in your browser.",
+      "Free, open-source ATS resume analyzer with documented scoring math.",
     url: siteUrl,
     siteName: "ATS Resume Analyzer",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "ATS Resume Analyzer — free, private, transparent",
+    title: "ATS Resume Analyzer — free, open, transparent",
     description:
-      "Free, privacy-first ATS resume analyzer that runs entirely in your browser.",
+      "Free, open-source ATS resume analyzer with documented scoring math.",
   },
 };
 
@@ -120,7 +120,7 @@ function SiteFooter() {
   return (
     <footer className="mt-24 border-t border-border">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-6 py-10 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-        <p>Runs entirely in your browser. No uploads. No tracking.</p>
+        <p>Open source. Built on documented heuristics, not magic.</p>
         <div className="flex items-center gap-6">
           <Link href="/methodology" className="hover:text-foreground transition-colors">
             Methodology

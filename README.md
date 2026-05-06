@@ -1,9 +1,9 @@
 # ATS Resume Analyzer
 
-A free, privacy-first ATS resume analyzer that runs **entirely in your browser**.
+A free, **open-source** ATS resume analyzer with documented scoring math.
 Upload a resume and a job description, get a multi-dimensional readiness report —
-keyword match, semantic similarity, hard requirements, and parseability. No
-servers, no uploads, no tracking.
+keyword match, semantic similarity, hard requirements, and parseability. Every
+score traces back to its inputs.
 
 > Status: **Phase 1** — scaffolding complete. Parsing, scoring, and the report
 > UI land in subsequent phases.
@@ -43,12 +43,6 @@ Open http://localhost:3000.
 - `/` — landing page
 - `/analyze` — upload and analyze (Phase 5)
 - `/methodology` — full scoring methodology
-
-## Privacy
-
-No backend. Resumes and job descriptions are read, parsed, and scored entirely
-in the browser. The only network request beyond static assets is a one-time
-download of the open-source MiniLM embedding model on first analysis.
 
 ## License
 

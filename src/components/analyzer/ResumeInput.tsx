@@ -132,7 +132,7 @@ export function ResumeInput({ value, onChange, onError }: Props) {
               Drop your resume here, or click to browse
             </p>
             <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-              Processed entirely in your browser. Nothing is uploaded.
+              PDF, DOCX, TXT, or MD.
             </p>
           </>
         )}

@@ -74,9 +74,9 @@ export default function MethodologyPage() {
       >
         <p>
           Each JD requirement and each resume bullet is embedded with{" "}
-          <Mono>Xenova/all-MiniLM-L6-v2</Mono> running in your browser via
-          transformers.js. For each JD requirement, we find the single best
-          resume bullet by cosine similarity.
+          <Mono>Xenova/all-MiniLM-L6-v2</Mono> via transformers.js. For each
+          JD requirement, we find the single best resume bullet by cosine
+          similarity.
         </p>
         <p>
           Cosine values are scaled linearly: 0.3 → 0, 0.8 → 100. The score
@@ -191,14 +191,12 @@ export default function MethodologyPage() {
         </p>
       </Section>
 
-      <Section id="privacy" eyebrow="Privacy" title="Why this stays local">
+      <Section id="open-source" eyebrow="Open source" title="Built in the open">
         <p>
-          Resumes and job descriptions never leave your browser. Parsing
-          (pdf.js, mammoth), NLP (compromise, custom heuristics), and the
-          embedding model (transformers.js + WebAssembly) all run locally.
-          The only network requests beyond static assets are the one-time
-          download of the open-source MiniLM model (~25MB) and the pdf.js
-          worker, both cached via a service worker.
+          Every scoring function is small, deterministic, and unit-tested
+          against the same fixtures the demo uses. Heuristics are documented
+          inline next to the code that implements them. There is no model
+          dashboard, no proprietary signal, no &ldquo;trust us.&rdquo;
         </p>
         <p>
           The full source is on GitHub:{" "}

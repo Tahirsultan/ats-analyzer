@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "ATS Resume Analyzer — free, private, transparent";
+export const alt = "ATS Resume Analyzer — free, open, transparent";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -100,7 +100,7 @@ export default async function OgImage() {
               fontStyle: "italic",
             }}
           >
-            without uploading your resume.
+            with every score explained.
           </div>
         </div>
 
@@ -125,7 +125,7 @@ export default async function OgImage() {
             <span>·</span>
             <span>Parseability</span>
           </div>
-          <span style={{ color: FG, fontWeight: 600 }}>Free · Private · Open source</span>
+          <span style={{ color: FG, fontWeight: 600 }}>Free · Open · Transparent</span>
         </div>
       </div>
     ),

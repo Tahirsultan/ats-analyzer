@@ -53,9 +53,9 @@ export function MobileGate({ children }: { children: React.ReactNode }) {
           Best viewed on desktop
         </h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          The analyzer parses PDFs and runs a language model in your browser.
-          That experience is built for a wider screen — comparison views,
-          charts, and the gap-analysis report all assume desktop layout.
+          The analyzer renders comparison views, radar and bar charts, and a
+          per-requirement gap report. That layout is designed for a wider
+          screen.
         </p>
         <p className="mt-3 text-sm text-muted-foreground">
           Open this page on a laptop or desktop for the intended experience,

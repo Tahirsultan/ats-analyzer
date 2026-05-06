@@ -5,43 +5,41 @@ import { buttonVariants } from "@/components/ui/button";
 export default function Home() {
   return (
     <div className="mx-auto w-full max-w-6xl px-6">
-      {/* Hero */}
-      <section className="grid gap-12 pt-20 pb-24 lg:grid-cols-[7fr_5fr] lg:items-end lg:gap-16">
-        <div className="space-y-8">
-          {/* Eyebrow — replaces the dated "FREE · PRIVATE · TRANSPARENT" pill */}
+      {/* Hero — tightened so CTAs sit above the fold at 100% zoom on standard
+          1366×768 laptops. The previous pt-20 + clamp(40,5.5vw,72px) headline
+          pushed buttons below the fold on smaller viewports. */}
+      <section className="grid gap-10 pt-12 pb-20 lg:grid-cols-[7fr_5fr] lg:items-end lg:gap-16">
+        <div className="space-y-6">
           <p className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
             <span className="inline-block h-px w-8 bg-muted-foreground/60" />
             <span>Free</span>
             <span className="text-muted-foreground/40">·</span>
-            <span>Private</span>
+            <span>Open</span>
             <span className="text-muted-foreground/40">·</span>
             <span>Transparent</span>
           </p>
 
           <h1 className="display text-foreground">
-            <span className="block text-[clamp(40px,5.5vw,72px)] leading-[1.05]">
+            <span className="block text-[clamp(36px,4.4vw,60px)] leading-[1.05]">
               Honest ATS feedback,
             </span>
             <span
-              className="block text-[clamp(40px,5.5vw,72px)] leading-[1.05] italic"
+              className="block text-[clamp(36px,4.4vw,60px)] leading-[1.05] italic"
               style={{ color: "var(--primary)" }}
             >
-              without uploading your resume.
+              with every score explained.
             </span>
           </h1>
 
-          <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-[17px]">
-            A free, open-source analyzer that runs entirely in your browser.
-            Compare your resume against any job description and get a
-            multi-dimensional readiness report — keyword match, semantic
-            similarity, hard requirements, and parseability — all explainable.
+          <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-[16px]">
+            A free, open-source analyzer that compares your resume against
+            any job description. Four independent scores — keyword match,
+            semantic similarity, hard requirements, and parseability — every
+            number traces back to its inputs.
           </p>
 
-          <div className="flex flex-wrap items-center gap-x-7 gap-y-4 pt-2">
-            <Link
-              href="/analyze"
-              className={buttonVariants({ size: "lg" })}
-            >
+          <div className="flex flex-wrap items-center gap-x-7 gap-y-3 pt-1">
+            <Link href="/analyze" className={buttonVariants({ size: "lg" })}>
               Analyze a resume
             </Link>
             <Link
@@ -56,15 +54,16 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Right column — small editorial side note keeps the hero composed */}
+        {/* Right-column editorial side note. Repositioned around method,
+            not data handling — the design pass dropped the privacy framing. */}
         <aside className="hidden lg:block">
           <p className="border-l border-border pl-6 text-sm leading-relaxed text-muted-foreground">
             Paid tools charge subscriptions for analysis built on heuristics
-            anyone can implement, and require you to upload personal documents
-            to third-party servers.
+            anyone can implement, and present scores with false precision
+            behind a black box.
             <br />
             <span className="mt-3 block text-foreground">
-              This one does the same analysis, transparently, locally,{" "}
+              This one shows the math behind every score,{" "}
               <span className="italic" style={{ color: "var(--primary)" }}>
                 for free.
               </span>
@@ -73,15 +72,13 @@ export default function Home() {
         </aside>
       </section>
 
-      {/* Hairline divider between hero and steps */}
       <hr className="border-border" />
 
-      {/* Three steps */}
       <section className="grid gap-y-12 gap-x-10 py-20 md:grid-cols-3">
         <Step
           n="01"
           title="Paste or upload"
-          body="Drop in your resume (PDF, DOCX, TXT, MD) and the job description. Files are read in your browser — never sent to a server."
+          body="Drop in your resume — PDF, DOCX, TXT, or MD — and the job description. Both inputs feed the same scoring pipeline."
         />
         <Step
           n="02"
@@ -97,27 +94,27 @@ export default function Home() {
 
       <hr className="border-border" />
 
-      {/* Privacy */}
+      {/* Methodology teaser — replaces the previous privacy section. */}
       <section className="grid gap-10 py-20 md:grid-cols-[1fr_2fr]">
         <div className="space-y-3">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-            Privacy
+            Methodology
           </p>
           <h2 className="display text-3xl text-foreground">
-            How it stays private.
+            Every score, documented.
           </h2>
         </div>
         <div className="space-y-5 text-base leading-relaxed text-muted-foreground">
           <p>
-            Most ATS tools require you to upload personal documents to their
-            servers. This one doesn&apos;t. Parsing, NLP, and the embedding
-            model all run inside your browser via WebAssembly.
+            No real ATS — paid or free — produces a single &ldquo;true&rdquo;
+            score, because actual systems used by employers do not share a
+            unified standard. This tool is honest about that.
           </p>
           <p>
-            There is no backend, no database, no analytics on document
-            content. The only network request beyond static assets is the
-            one-time download of the open-source language model on first
-            analysis.
+            Each of the four dimensions is computed by a small, auditable
+            function. Heuristics are labeled as heuristics. Weights and
+            thresholds are documented, not implied. The composite score is
+            always shown alongside its components — never alone.
           </p>
           <p>
             <Link

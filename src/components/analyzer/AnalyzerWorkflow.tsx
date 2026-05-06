@@ -252,9 +252,6 @@ function RunningPanel({
         {isModelDownloading && (
           <ModelDownloadIndicator progress={modelProgress} />
         )}
-        <p className="text-xs text-muted-foreground">
-          All processing happens in your browser. Nothing is uploaded.
-        </p>
       </div>
     </div>
   );

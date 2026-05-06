@@ -27,8 +27,9 @@ function AnalyzePageInner() {
           </p>
           <h1 className="display text-3xl text-foreground">Analyze</h1>
           <p className="max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-            Upload a resume and paste or upload a job description. Everything
-            is processed locally in your browser — nothing is uploaded.
+            Upload a resume and paste or upload a job description. The
+            analyzer returns four independent scores plus a per-requirement
+            gap report.
           </p>
         </header>
         <div className="mt-12">

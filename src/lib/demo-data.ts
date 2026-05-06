@@ -1,8 +1,8 @@
 /**
  * Sample resume + JD bundled into the client so visitors can try the demo
- * without uploading anything. Both are fictional — same characters as the
- * test fixtures, kept in sync intentionally so the demo exercises the
- * exact code paths the test suite covers.
+ * with one click. Both are fictional — same characters as the test
+ * fixtures, kept in sync intentionally so the demo exercises the exact
+ * code paths the test suite covers.
  */
 export const DEMO_RESUME_MD = `# Jane Doe
 **Senior Backend Engineer**
