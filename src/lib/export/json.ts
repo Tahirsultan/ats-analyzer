@@ -20,6 +20,8 @@ export interface ExportedReport {
   scores: {
     keyword: {
       score: number;
+      totalWeight: number;
+      matchedWeight: number;
       matched: ExportedKeyword[];
       missing: ExportedKeyword[];
     };
@@ -45,9 +47,15 @@ export interface ExportedReport {
 
 interface ExportedKeyword {
   surface: string;
+  lemma: string;
+  aliases: string[];
   classification: "must-have" | "nice-to-have";
+  tier: "must-have" | "nice-to-have" | "body";
+  sourceSection: string;
   weight: number;
   frequency: number;
+  /** Resume excerpt where the keyword was first matched (matched only). */
+  foundIn?: string;
 }
 
 interface ExportedCoverage {
@@ -92,7 +100,12 @@ export function serializeReport(
     scores: {
       keyword: {
         score: report.scores.keyword.score,
-        matched: report.scores.keyword.matched.map(toKeyword),
+        totalWeight: report.scores.keyword.totalWeight,
+        matchedWeight: report.scores.keyword.matchedWeight,
+        matched: report.scores.keyword.matched.map((k) => ({
+          ...toKeyword(k),
+          foundIn: k.foundIn,
+        })),
         missing: report.scores.keyword.missing.map(toKeyword),
       },
       semantic: {
@@ -138,13 +151,21 @@ export function serializeReport(
 
 function toKeyword(k: {
   surface: string;
+  lemma: string;
+  aliases: string[];
   classification: "must-have" | "nice-to-have";
+  tier: "must-have" | "nice-to-have" | "body";
+  sourceSection: string;
   weight: number;
   frequency: number;
-}) {
+}): ExportedKeyword {
   return {
     surface: k.surface,
+    lemma: k.lemma,
+    aliases: k.aliases,
     classification: k.classification,
+    tier: k.tier,
+    sourceSection: k.sourceSection,
     weight: k.weight,
     frequency: k.frequency,
   };

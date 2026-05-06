@@ -28,7 +28,7 @@ export function formatTextSummary(report: AnalysisReport): string {
     lines.push("Top missing JD keywords (sorted by weight):");
     for (const k of topMissing) {
       lines.push(
-        `  - ${k.surface}  [${k.classification}, weight ${k.weight.toFixed(1)}]`,
+        `  - ${k.surface}  [${k.tier}, weight ${k.weight.toFixed(1)}]`,
       );
     }
     lines.push("");

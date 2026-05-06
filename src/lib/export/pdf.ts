@@ -83,7 +83,7 @@ export function renderReportPdf(report: AnalysisReport): Blob {
   } else {
     for (const k of topMissing) {
       writeBody(
-        `  • ${k.surface}  [${k.classification}, weight ${k.weight.toFixed(1)}]`,
+        `  • ${k.surface}  [${k.tier}, weight ${k.weight.toFixed(1)}]`,
       );
     }
   }

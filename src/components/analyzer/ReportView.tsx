@@ -1,7 +1,7 @@
 "use client";
 
 import { ScoreRadar } from "./ScoreRadar";
-import { MissingKeywordsBar } from "./MissingKeywordsBar";
+import { KeywordMatchAnalysis } from "./KeywordMatchAnalysis";
 import { ExportActions } from "./ExportActions";
 import type { AnalysisReport } from "@/lib/pipeline";
 import { COMPOSITE_WEIGHTS } from "@/lib/pipeline";
@@ -107,14 +107,8 @@ export function ReportView({ report, onReset }: Props) {
         />
       </section>
 
-      {/* Missing keywords */}
-      <ReportSection
-        title="Top missing JD keywords"
-        eyebrow="Keyword match"
-        description="Sorted by weight; must-have keywords carry 3× nice-to-have. Add these to your resume only where they accurately describe your work — that is the highest-leverage edit."
-      >
-        <MissingKeywordsBar missing={scores.keyword.missing} />
-      </ReportSection>
+      {/* Keyword Match — Full Analysis (replaces top-N bar chart). */}
+      <KeywordMatchAnalysis result={scores.keyword} />
 
       {/* Hard requirements checklist */}
       <ReportSection

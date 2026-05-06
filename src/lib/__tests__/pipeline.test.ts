@@ -22,9 +22,11 @@ describe("runAnalysis", () => {
     expect(scores.semantic.score).toBeGreaterThanOrEqual(0);
     expect(scores.hardRequirements.score).toBeGreaterThanOrEqual(0);
     expect(scores.parseability.score).toBeGreaterThanOrEqual(0);
-    // Jane was custom-built to fit the backend JD; composite should be solid.
-    expect(scores.keyword.score).toBeGreaterThan(60);
-    expect(scores.composite).toBeGreaterThan(50);
+    // Jane was custom-built to fit the backend JD; the lexical score
+    // dropped after the extractor expansion (more multi-word phrases
+    // captured) but should still be a meaningful match.
+    expect(scores.keyword.score).toBeGreaterThan(25);
+    expect(scores.composite).toBeGreaterThan(40);
   });
 
   it("flags coverage and missing-keyword gaps for a mismatched pair", async () => {
