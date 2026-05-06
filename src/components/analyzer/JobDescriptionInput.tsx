@@ -65,7 +65,11 @@ export function JobDescriptionInput({ value, onChange, onError }: Props) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Paste the full job description here, or upload a TXT/MD file."
-        className="min-h-44 resize-y bg-card font-sans text-sm leading-relaxed"
+        // Override shadcn's `field-sizing-content` so the textarea no
+        // longer grows to fit its contents — long JDs would otherwise
+        // push the Analyze CTA below the fold. h-44 matches the resume
+        // dropzone height; the textarea scrolls internally past that.
+        className="h-44 resize-none bg-card font-sans text-sm leading-relaxed [field-sizing:fixed]"
       />
       <p className="mt-2 font-mono text-[11px] text-muted-foreground">
         {value.length === 0
