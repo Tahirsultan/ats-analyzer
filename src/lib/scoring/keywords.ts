@@ -307,6 +307,29 @@ interface RawKeyword {
  *   • leading "Strong / Excellent / Proven / Prior" adjectives that
  *     compromise sometimes glues to the head noun
  */
+/**
+ * Find capitalized field names that appear in a "degree in X, Y, or Z"
+ * enumeration. These are degree-field examples, not skill keywords.
+ * Returns the lowercase field words to mark as consumed.
+ */
+function collectDegreeFieldEnumerations(text: string): string[] {
+  const out: string[] = [];
+  // Match "degree in <list>" and "field of <list>". The list is captured
+  // up to the next sentence-end or an "or a related" clause that often
+  // closes the enumeration.
+  const re =
+    /\b(?:degree|field)\s+(?:in|of)\s+([A-Z][A-Za-z]+(?:\s*,\s*(?:and\s+|or\s+)?[A-Z][A-Za-z]+)+(?:\s*,?\s*or\s+a\s+related\s+\w+)?)/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    const list = m[1] ?? "";
+    for (const word of list.split(/\s*,\s*|\s+or\s+|\s+and\s+/)) {
+      const w = word.trim().replace(/^a\s+related\s+\w+$/i, "");
+      if (/^[A-Z][A-Za-z]+$/.test(w)) out.push(w);
+    }
+  }
+  return out;
+}
+
 function cleanPhrase(raw: string): string {
   let s = raw
     .replace(/[‘’]/g, "'")
@@ -327,7 +350,7 @@ function cleanPhrase(raw: string): string {
   while (prev !== s) {
     prev = s;
     s = s.replace(
-      /^(?:the|a|an|our|your|my|this|that|these|those|with|of|to|in|on|for|by|from|at|as|or|and|excellent|strong|proven|prior|advanced|annual|qualified|related|other|various|general|familiar|familiarity|knowledge|understanding|experience|exposure|prior)\s+/i,
+      /^(?:the|a|an|our|your|my|this|that|these|those|with|of|to|in|on|for|by|from|at|as|or|and|excellent|strong|proven|prior|advanced|annual|qualified|related|other|various|general|familiar|familiarity|knowledge|understanding|experience|exposure|deep|modern|production|senior|junior|new|next|core|major|minor)\s+/i,
       "",
     );
   }
@@ -344,6 +367,12 @@ function cleanPhrase(raw: string): string {
 function extractKeywordSurfaces(text: string): RawKeyword[] {
   const out: RawKeyword[] = [];
   const consumed = new Set<string>();
+  // Degree-field enumeration boilerplate: "Bachelor's degree in Marketing,
+  // Business, or a related field" — the comma-separated nouns are
+  // examples of acceptable degree fields, not skills. Mark them so the
+  // cap-noun pass doesn't pull them in.
+  const fieldEnumBoilerplate = collectDegreeFieldEnumerations(text);
+  for (const f of fieldEnumBoilerplate) consumed.add(f.toLowerCase());
 
   // Split on commas / sentence ends BEFORE feeding compromise so phrases
   // like "Marketing, Business" don't fuse into a single noun chunk
@@ -611,7 +640,11 @@ export function extractJdKeywords(analysis: JdAnalysis): JdKeyword[] {
     const tier = tierForSection(sourceSection);
     const baseWeight = baseWeightForSection(sourceSection);
     const weight = baseWeight * (1 + Math.log(frequency));
-    keywords.push({
+
+    // Auto-attach degree-equivalence regex when the keyword looks like
+    // a degree requirement, and YOE numeric matcher when it's a years
+    // pattern. Both bypass the literal-text matcher in keyword-match.ts.
+    const enriched = enrichWithCustomMatchers({
       surface,
       lemma,
       aliases: Array.from(aliases),
@@ -621,6 +654,7 @@ export function extractJdKeywords(analysis: JdAnalysis): JdKeyword[] {
       frequency,
       weight: Math.round(weight * 100) / 100,
     });
+    keywords.push(enriched);
   }
 
   // Sort: must-have first by descending weight, then everything else.
@@ -631,7 +665,91 @@ export function extractJdKeywords(analysis: JdAnalysis): JdKeyword[] {
     return b.weight - a.weight;
   });
 
-  return keywords;
+  // Constituent dedup: drop a single-token keyword K if there is another
+  // keyword K' from the same source section whose lemma contains K's
+  // lemma as a constituent token. This is stronger than the in-extractor
+  // dedup pass because it runs across all extraction sources and ignores
+  // the allowlist/acronym escape hatches — the user's call: when the JD
+  // says "qualified pipeline" you want "qualified pipeline", not
+  // "qualified pipeline" AND "pipeline".
+  const constituentBySection = new Map<JdSectionKind, Set<string>>();
+  for (const k of keywords) {
+    const toks = k.lemma.split(" ").filter(Boolean);
+    if (toks.length < 2) continue;
+    if (!constituentBySection.has(k.sourceSection)) {
+      constituentBySection.set(k.sourceSection, new Set());
+    }
+    for (const t of toks) constituentBySection.get(k.sourceSection)!.add(t);
+  }
+  return keywords.filter((k) => {
+    const toks = k.lemma.split(" ").filter(Boolean);
+    if (toks.length !== 1) return true;
+    const constituents = constituentBySection.get(k.sourceSection);
+    if (!constituents) return true;
+    return !constituents.has(toks[0]!);
+  });
+}
+
+/**
+ * Detect degree-style and years-of-experience keywords and attach the
+ * appropriate custom matcher (regex for degrees, numeric YOE for years).
+ * Without these, "Bachelor's degree" / "5+ years" would only match an
+ * exact textual repeat in the resume — neither is realistic.
+ */
+function enrichWithCustomMatchers(k: JdKeyword): JdKeyword {
+  // 5+ years / 10 years / 3-5 years
+  const yearsMatch = k.surface.match(/(\d{1,2})\s*(?:\+|-\s*\d{1,2})?\s*(?:years?|yrs?)\b/i);
+  if (yearsMatch && yearsMatch[1]) {
+    const minYears = parseInt(yearsMatch[1], 10);
+    if (Number.isFinite(minYears)) {
+      return { ...k, minYearsOfExperience: minYears };
+    }
+  }
+
+  // Bachelor / Master / Doctorate / MBA / Associate
+  const degreePattern = detectDegreePattern(k.surface);
+  if (degreePattern) {
+    return { ...k, matchPattern: degreePattern };
+  }
+  return k;
+}
+
+/**
+ * If `surface` looks like a degree requirement, return a regex that
+ * matches all common variants of that degree level. Returns null if the
+ * surface doesn't reference a recognized degree word.
+ */
+function detectDegreePattern(surface: string): RegExp | null {
+  const s = surface.toLowerCase();
+  // Use `(?![A-Za-z])` instead of `\b` at the end so the regex still
+  // matches abbreviations that end in a period ("B.A.", "Ph.D.") —
+  // `\b` doesn't fire between two non-word chars (the trailing `.`
+  // and the following space).
+  if (/\bbachelor/i.test(s)) {
+    return new RegExp(
+      String.raw`\b(?:bachelor(?:'s|s)?(?:\s+(?:of|degree|in)\b[\w \-]*)?|b\.?\s*a\.?|b\.?\s*s\.?|b\.?\s*sc\.?|b\.?\s*eng\.?|b\.?\s*tech\.?|undergraduate\s+degree)(?![A-Za-z])`,
+      "i",
+    );
+  }
+  if (/\bmaster/i.test(s) || /\bmba\b/i.test(s)) {
+    return new RegExp(
+      String.raw`\b(?:master(?:'s|s)?(?:\s+(?:of|degree|in)\b[\w \-]*)?|m\.?\s*a\.?|m\.?\s*s\.?|m\.?\s*sc\.?|m\.?\s*eng\.?|m\.?\s*b\.?\s*a\.?|mba|graduate\s+degree)(?![A-Za-z])`,
+      "i",
+    );
+  }
+  if (/\b(?:doctor|phd|ph\.d)/i.test(s)) {
+    return new RegExp(
+      String.raw`\b(?:doctor(?:ate|al)?(?:\s+(?:of|degree|in)\b[\w \-]*)?|ph\.?\s*d\.?)(?![A-Za-z])`,
+      "i",
+    );
+  }
+  if (/\bassociate/i.test(s) && /\bdegree/i.test(s)) {
+    return new RegExp(
+      String.raw`\b(?:associate(?:'s|s)?\s+degree|a\.?\s*a\.?|a\.?\s*s\.?)(?![A-Za-z])`,
+      "i",
+    );
+  }
+  return null;
 }
 
 function addCandidate(

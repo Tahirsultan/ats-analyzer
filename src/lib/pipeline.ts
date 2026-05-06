@@ -97,7 +97,9 @@ export async function runAnalysis(input: AnalysisInput): Promise<AnalysisReport>
     extractJdKeywords(jdAnalysis),
   );
   const keywordResult = await step("keyword-match", async () =>
-    computeKeywordMatch(resumeStructure.document.text, keywords),
+    computeKeywordMatch(resumeStructure.document.text, keywords, {
+      resumeYearsOfExperience: resumeStructure.yearsOfExperience,
+    }),
   );
   const hardReqs = await step("extract-hard-requirements", async () =>
     extractHardRequirements(jdAnalysis),

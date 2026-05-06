@@ -40,7 +40,10 @@ describe("extractJdKeywords on marketing-manager fixture", () => {
   it("captures single-token domain terms via the allowlist", () => {
     expect(surfaces).toContain("seo");
     expect(surfaces).toContain("roi");
-    expect(surfaces).toContain("pipeline");
+    // pipeline is deduped in favor of the more specific "qualified
+    // pipeline" — both come from the intro section, so the constituent
+    // dedup pass subsumes the bare token.
+    expect(surfaces).toContain("qualified pipeline");
     expect(surfaces).toContain("conversion");
   });
 

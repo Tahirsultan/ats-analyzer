@@ -34,6 +34,18 @@ export interface JdKeyword {
   frequency: number;
   /** Computed weight = base (3 or 1) × (1 + log frequency). */
   weight: number;
+  /**
+   * Optional regex used in place of literal-phrase matching. Set for
+   * degree-equivalence keywords so "Bachelor's degree" in the JD matches
+   * "Bachelor of Arts in Marketing" / "B.A." / "BS" / etc. in the resume.
+   */
+  matchPattern?: RegExp;
+  /**
+   * Optional minimum years-of-experience. When set, the keyword matches
+   * iff the resume's parsed YOE is ≥ this value — never via literal text
+   * match, since real resumes write "6 years of experience", not "5+ years".
+   */
+  minYearsOfExperience?: number;
 }
 
 export interface MatchedKeyword extends JdKeyword {
