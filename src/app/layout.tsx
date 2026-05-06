@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -75,9 +76,23 @@ function SiteHeader() {
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6">
         <Link
           href="/"
-          className="font-display text-lg leading-none tracking-tight text-foreground transition-colors hover:text-primary"
+          aria-label="ATS Analyzer — home"
+          className="inline-flex items-center transition-opacity hover:opacity-80"
         >
-          ATS&nbsp;Analyzer
+          {/*
+            The brand mark is a self-contained icon + wordmark lockup, so
+            the header gets just the image — no extra text alongside.
+            Sized at 28px display height (image source is 192px square,
+            i.e. ~7x density for crisp retina rendering).
+          */}
+          <Image
+            src="/logo.png"
+            alt="ATS Analyzer"
+            width={192}
+            height={192}
+            priority
+            className="h-7 w-7"
+          />
         </Link>
         <nav className="flex items-center gap-8 text-sm">
           <NavLink href="/analyze">Analyze</NavLink>
