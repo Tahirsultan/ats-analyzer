@@ -73,25 +73,27 @@ export default function RootLayout({
 function SiteHeader() {
   return (
     <header className="border-b border-border bg-background/80 backdrop-blur-[2px]">
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6">
+      <div className="mx-auto flex h-20 w-full max-w-6xl items-center justify-between px-6">
         <Link
           href="/"
           aria-label="ATS Analyzer — home"
-          className="inline-flex items-center transition-opacity hover:opacity-80"
+          className="-my-2 inline-flex items-center transition-opacity hover:opacity-80"
         >
           {/*
             The brand mark is a self-contained icon + wordmark lockup, so
             the header gets just the image — no extra text alongside.
-            Sized at 28px display height (image source is 192px square,
-            i.e. ~7x density for crisp retina rendering).
+            Sized at 56px display height (image source is 384px square for
+            crisp retina rendering). The negative margin lets the logo
+            visually overflow the 80px header without changing nav row
+            height.
           */}
           <Image
             src="/logo.png"
             alt="ATS Analyzer"
-            width={192}
-            height={192}
+            width={384}
+            height={384}
             priority
-            className="h-7 w-7"
+            className="h-14 w-14"
           />
         </Link>
         <nav className="flex items-center gap-8 text-sm">
