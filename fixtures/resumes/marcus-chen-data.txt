@@ -1,0 +1,31 @@
+Marcus Chen
+Austin, TX | marcus.chen@email.com | (555) 234-5678 | linkedin.com/in/marcuschen
+
+Professional Summary
+Data analyst with 3 years of experience building data pipelines and reporting infrastructure for mid-market SaaS companies. Strong Python and SQL skills with hands-on experience in cloud data warehouses and ETL workflows. Currently transitioning into a data engineering role.
+
+Professional Experience
+
+Data Analyst — BrightData Inc.
+August 2022 — Present
+- Build and maintain data pipelines using Python and SQL to support analytics reporting.
+- Develop ETL workflows in Airflow to ingest data from Stripe, Salesforce, and internal APIs.
+- Design dimensional models in Snowflake to power executive dashboards.
+- Collaborate with data analysts and product managers to define metric definitions.
+- Implement data quality checks for critical reporting pipelines.
+
+Junior Data Analyst — RetailScope
+June 2021 — July 2022
+- Wrote SQL queries to support business intelligence reporting in Looker.
+- Built Python scripts to automate data extraction from third-party APIs.
+- Migrated legacy reporting from Excel to a modern BI stack.
+
+Education
+M.S. in Data Science
+University of Texas at Austin, 2019 — 2021
+
+B.S. in Statistics
+University of Texas at Austin, 2015 — 2019
+
+Skills
+Python, SQL, Snowflake, Airflow, dbt, Git, AWS S3, data modeling, ETL, data quality, BI reporting

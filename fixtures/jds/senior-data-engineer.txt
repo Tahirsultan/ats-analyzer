@@ -1,0 +1,28 @@
+Senior Data Engineer — Northwind Analytics
+
+About the Role
+We are hiring a Senior Data Engineer to design and scale our data infrastructure. You will own the data pipeline architecture, mentor junior engineers, and partner with analytics and machine learning teams to deliver reliable, production-grade data systems.
+
+Responsibilities
+- Design, build, and maintain scalable data pipelines using Python and SQL.
+- Architect data warehouse solutions on Snowflake and optimize query performance.
+- Develop ETL workflows using Airflow to ingest data from multiple sources.
+- Partner with data analysts and machine learning engineers to deliver clean, well-modeled datasets.
+- Implement data quality monitoring and alerting across critical pipelines.
+- Mentor two junior data engineers and review their code.
+- Lead architecture reviews and contribute to long-term data platform strategy.
+
+Required Qualifications
+- Master's degree in Computer Science, Engineering, or a related quantitative field.
+- 5+ years of professional data engineering experience.
+- Advanced proficiency in Python and SQL.
+- Production experience with Snowflake or a comparable cloud data warehouse.
+- Strong experience designing ETL pipelines with Airflow.
+- Experience with AWS services including S3, Lambda, and Redshift.
+
+Preferred Qualifications
+- PhD in a quantitative field.
+- Experience with dbt for data transformation.
+- Familiarity with Kafka or other streaming platforms.
+- Prior experience leading or mentoring engineering teams.
+- Contributions to open source data tooling.

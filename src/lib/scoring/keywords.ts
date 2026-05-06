@@ -2,6 +2,7 @@ import nlp from "compromise";
 import type { JdAnalysis, JdSectionKind } from "@/lib/jd/types";
 import type { JdKeyword, KeywordTier } from "./types";
 import { lemmatizePhrase } from "./lemmatize";
+import { buildAliasIndex, detectDomain } from "./keyword-aliases";
 
 const MUST_WEIGHT = 3;
 const NICE_WEIGHT = 1;
@@ -131,7 +132,17 @@ const PHRASE_BLOCKLIST = new Set([
   "track record",
   "written communication",
   "verbal communication",
+  // Generic degree-field qualifiers — the JD's permissive language
+  // ("or a related quantitative field", "or relevant experience").
+  // These are not skill names; they widen the field-acceptance window.
   "related field",
+  "relevant field",
+  "similar field",
+  "quantitative field",
+  "related quantitative field",
+  "relevant quantitative field",
+  "equivalent experience",
+  "relevant experience",
   "advanced degree",
   "prior experience",
   "technology company",
@@ -145,6 +156,10 @@ const PHRASE_BLOCKLIST = new Set([
   "revenue goal",
   "marketing manager",
   "qualified pipeline",
+  // Common JD-body framing phrases that aren't skills
+  "production experience",
+  "open source",
+  "open source data tooling",
 ]);
 
 /**
@@ -209,6 +224,7 @@ const PHRASE_ALLOWLIST = new Set([
  * "lead qualification criteria" becomes "lead qualification".
  */
 const PREFERRED_SUBPHRASES = new Set([
+  // Marketing
   "demand generation",
   "lead qualification",
   "lead nurturing",
@@ -228,6 +244,18 @@ const PREFERRED_SUBPHRASES = new Set([
   "paid search",
   "organic traffic",
   "account-based marketing",
+  // Tech / data
+  "data pipelines",
+  "data pipeline",
+  "machine learning",
+  "data warehouse",
+  "data science",
+  "data infrastructure",
+  "data quality",
+  "etl pipelines",
+  "etl pipeline",
+  "etl workflows",
+  "etl workflow",
 ]);
 
 /**
@@ -315,18 +343,85 @@ interface RawKeyword {
 function collectDegreeFieldEnumerations(text: string): string[] {
   const out: string[] = [];
   // Match "degree in <list>" and "field of <list>". The list is captured
-  // up to the next sentence-end or an "or a related" clause that often
-  // closes the enumeration.
+  // up to the next sentence-end or an "or a related/relevant/similar
+  // <X> field" clause that often closes the enumeration. We also capture
+  // a trailing "or related/equivalent experience" qualifier.
   const re =
-    /\b(?:degree|field)\s+(?:in|of)\s+([A-Z][A-Za-z]+(?:\s*,\s*(?:and\s+|or\s+)?[A-Z][A-Za-z]+)+(?:\s*,?\s*or\s+a\s+related\s+\w+)?)/gi;
+    /\b(?:degree|field)\s+(?:in|of)\s+([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)?(?:\s*,\s*(?:and\s+|or\s+)?[A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)?)+(?:\s*,?\s*(?:or|and)\s+(?:a\s+|the\s+)?(?:related|relevant|similar|equivalent)(?:\s+\w+)?\s+\w+)?)/gi;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text)) !== null) {
     const list = m[1] ?? "";
-    for (const word of list.split(/\s*,\s*|\s+or\s+|\s+and\s+/)) {
-      const w = word.trim().replace(/^a\s+related\s+\w+$/i, "");
-      if (/^[A-Z][A-Za-z]+$/.test(w)) out.push(w);
+    for (const segment of list.split(/\s*,\s*|\s+or\s+|\s+and\s+/)) {
+      const seg = segment.trim();
+      // Strip generic qualifier tails: "a related quantitative field" /
+      // "a relevant field" / "equivalent experience". These are
+      // permissive language, not actual field names.
+      if (/^(?:a\s+|the\s+)?(?:related|relevant|similar|equivalent)\b/i.test(seg)) {
+        continue;
+      }
+      // Capitalized field names like "Computer Science", "Engineering"
+      if (/^[A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)?$/.test(seg)) out.push(seg);
     }
   }
+  return out;
+}
+
+/**
+ * Collect role-title surfaces to filter from the keyword list. Derived
+ * from the JD's first non-empty line plus a "(Senior|Junior|Lead|...)
+ * <Role>" pattern across all sections. The role being applied to is
+ * never a useful keyword — the candidate's resume isn't expected to
+ * include the JD's title verbatim.
+ *
+ * Returns a Set of LOWERCASE surfaces to drop. We add three forms per
+ * detected title:
+ *   1. Full title ("Senior Data Engineer")
+ *   2. Role noun without seniority ("Data Engineer")
+ *   3. Bare seniority modifier ("Senior")
+ */
+function collectRoleTitleSurfaces(analysis: JdAnalysis): Set<string> {
+  const out = new Set<string>();
+  const SENIORITY = "(?:Senior|Junior|Lead|Principal|Staff|Chief|Head\\s+of|VP|Vice\\s+President|Director|Manager)";
+  // The bare seniority words by themselves are filtered too — these
+  // describe the role's level, not a skill.
+  const SENIORITY_BARE = ["Senior", "Junior", "Lead", "Principal", "Staff", "Chief", "VP", "Director", "Manager"];
+
+  const harvest = (line: string) => {
+    // 1. Match a "Senior Data Engineer" pattern: seniority + 1-3 caps words.
+    const titleRe = new RegExp(
+      String.raw`\b${SENIORITY}\s+([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,2})\b`,
+      "g",
+    );
+    let m: RegExpExecArray | null;
+    while ((m = titleRe.exec(line)) !== null) {
+      const full = m[0].replace(/\s+/g, " ").trim();
+      const seniorityWord = full.split(/\s+/)[0]!;
+      const roleNoun = m[1]!.trim();
+      out.add(full.toLowerCase());
+      out.add(roleNoun.toLowerCase());
+      out.add(seniorityWord.toLowerCase());
+    }
+    // 2. The bare seniority words.
+    for (const s of SENIORITY_BARE) {
+      if (new RegExp(`\\b${s}\\b`, "i").test(line)) out.add(s.toLowerCase());
+    }
+  };
+
+  // First non-empty line of the intro section is almost always the JD
+  // title — that's where the "Senior Data Engineer — Northwind Analytics"
+  // line sits. Include it.
+  const introLines = analysis.sections.find((s) => s.kind === "intro")?.lines ?? [];
+  for (const l of introLines) {
+    if (l.trim()) {
+      harvest(l);
+      break;
+    }
+  }
+  // Also scan the full JD for the same pattern — picks up "mentor a
+  // Senior Data Engineer" style phrases.
+  const fullText = analysis.sections.map((s) => s.lines.join("\n")).join("\n");
+  harvest(fullText);
+
   return out;
 }
 
@@ -350,7 +445,7 @@ function cleanPhrase(raw: string): string {
   while (prev !== s) {
     prev = s;
     s = s.replace(
-      /^(?:the|a|an|our|your|my|this|that|these|those|with|of|to|in|on|for|by|from|at|as|or|and|excellent|strong|proven|prior|advanced|annual|qualified|related|other|various|general|familiar|familiarity|knowledge|understanding|experience|exposure|deep|modern|production|senior|junior|new|next|core|major|minor)\s+/i,
+      /^(?:the|a|an|our|your|my|this|that|these|those|with|of|to|in|on|for|by|from|at|as|or|and|excellent|strong|proven|prior|advanced|annual|qualified|related|other|various|general|familiar|familiarity|knowledge|understanding|experience|exposure|deep|modern|production|senior|junior|new|next|core|major|minor|professional|scalable|critical|multiple|long-term|production-grade)\s+/i,
       "",
     );
   }
@@ -369,10 +464,15 @@ function extractKeywordSurfaces(text: string): RawKeyword[] {
   const consumed = new Set<string>();
   // Degree-field enumeration boilerplate: "Bachelor's degree in Marketing,
   // Business, or a related field" — the comma-separated nouns are
-  // examples of acceptable degree fields, not skills. Mark them so the
-  // cap-noun pass doesn't pull them in.
+  // examples of acceptable degree fields, not skills. Mark each
+  // multi-word field name AND its individual constituent words so the
+  // cap-noun pass doesn't extract "Computer" or "Science" separately
+  // when the phrase "Computer Science" was filtered as a unit.
   const fieldEnumBoilerplate = collectDegreeFieldEnumerations(text);
-  for (const f of fieldEnumBoilerplate) consumed.add(f.toLowerCase());
+  for (const f of fieldEnumBoilerplate) {
+    consumed.add(f.toLowerCase());
+    for (const word of f.split(/\s+/)) consumed.add(word.toLowerCase());
+  }
 
   // Split on commas / sentence ends BEFORE feeding compromise so phrases
   // like "Marketing, Business" don't fuse into a single noun chunk
@@ -393,13 +493,17 @@ function extractKeywordSurfaces(text: string): RawKeyword[] {
       if (!cleaned) continue;
       const toks = cleaned.split(/\s+/).filter(Boolean);
       if (toks.length < 2 || toks.length > 3) continue;
-      // For 3-token phrases, prefer the leading 2-token form when it's
-      // a canonical sub-phrase ("demand generation" over
-      // "demand generation campaigns").
+      // For 3-token phrases, prefer a 2-token canonical sub-phrase when
+      // either the leading or trailing pair is in the preferred set.
+      // Examples:
+      //   "demand generation campaigns" → "demand generation" (leading)
+      //   "scalable data pipelines"     → "data pipelines"    (trailing)
       let surface = cleaned;
       if (toks.length === 3) {
         const head = `${toks[0]} ${toks[1]}`.toLowerCase();
+        const tail = `${toks[1]} ${toks[2]}`.toLowerCase();
         if (PREFERRED_SUBPHRASES.has(head)) surface = `${toks[0]} ${toks[1]}`;
+        else if (PREFERRED_SUBPHRASES.has(tail)) surface = `${toks[1]} ${toks[2]}`;
       }
       const key = surface.toLowerCase();
       if (consumed.has(key)) continue;
@@ -561,10 +665,24 @@ export function extractJdKeywords(analysis: JdAnalysis): JdKeyword[] {
     }
   >();
 
+  // Role-title filter — derived from the JD title and the
+  // "(Senior|Junior|...) <Noun>" pattern. The role being applied to
+  // shouldn't score: a candidate's resume might or might not literally
+  // include "Senior Data Engineer", but that's not a skill match. We
+  // filter the title, the role-noun (title minus seniority modifier),
+  // and the bare seniority modifier.
+  const roleFilter = collectRoleTitleSurfaces(analysis);
+
   // Acronym alias detection runs over the whole JD first so a phrase
   // defined in one section and used as a bare acronym in another still
   // collapses to a single canonical entry.
   const fullText = analysis.sections.map((s) => s.lines.join("\n")).join("\n\n");
+
+  // Alias dictionary — domain-aware. The SQL alias (→ "sales qualified
+  // lead") only fires on marketing JDs; tech JDs keep SQL as a literal
+  // string match.
+  const domain = detectDomain(fullText);
+  const aliasIndex = buildAliasIndex(domain);
   const aliasMap = detectAcronymAliases(fullText);
   // Reverse lookup: acronym → canonical lemma.
   const acronymToCanonical = new Map<string, string>();
@@ -616,6 +734,10 @@ export function extractJdKeywords(analysis: JdAnalysis): JdKeyword[] {
     if (tokens.length === 0) continue;
 
     const surfaceLower = surface.toLowerCase();
+    // Role-title filter (Fix 1): drop the JD's role title, the role
+    // noun without seniority, and the bare seniority modifier.
+    if (roleFilter.has(surfaceLower) || roleFilter.has(lemma)) continue;
+
     const isBlocked =
       PHRASE_BLOCKLIST.has(lemma) || PHRASE_BLOCKLIST.has(surfaceLower);
     if (isBlocked && !PHRASE_ALLOWLIST.has(lemma)) continue;
@@ -641,13 +763,32 @@ export function extractJdKeywords(analysis: JdAnalysis): JdKeyword[] {
     const baseWeight = baseWeightForSection(sourceSection);
     const weight = baseWeight * (1 + Math.log(frequency));
 
+    // Apply alias dictionary: if this surface (or any of its existing
+    // aliases) appears in a synonym group for the JD's domain, attach
+    // ALL other forms in that group as aliases. The matcher checks
+    // canonical + every alias, so JD "ETL pipelines" hits resume "ETL
+    // workflows" and vice versa.
+    const allAliases = new Set(aliases);
+    const candidates = [surface, lemma, ...allAliases].map((s) =>
+      s.toLowerCase(),
+    );
+    for (const cand of candidates) {
+      const group = aliasIndex.get(cand);
+      if (!group) continue;
+      const allForms = [group.canonical, ...group.variants];
+      for (const form of allForms) {
+        if (form.toLowerCase() === surface.toLowerCase()) continue;
+        allAliases.add(form);
+      }
+    }
+
     // Auto-attach degree-equivalence regex when the keyword looks like
     // a degree requirement, and YOE numeric matcher when it's a years
     // pattern. Both bypass the literal-text matcher in keyword-match.ts.
     const enriched = enrichWithCustomMatchers({
       surface,
       lemma,
-      aliases: Array.from(aliases),
+      aliases: Array.from(allAliases),
       classification,
       tier,
       sourceSection,
@@ -681,12 +822,103 @@ export function extractJdKeywords(analysis: JdAnalysis): JdKeyword[] {
     }
     for (const t of toks) constituentBySection.get(k.sourceSection)!.add(t);
   }
-  return keywords.filter((k) => {
+  const afterConstituentDedup = keywords.filter((k) => {
     const toks = k.lemma.split(" ").filter(Boolean);
     if (toks.length !== 1) return true;
     const constituents = constituentBySection.get(k.sourceSection);
     if (!constituents) return true;
     return !constituents.has(toks[0]!);
+  });
+
+  // Alias-group dedupe (Fix 3): when multiple keywords belong to the
+  // same alias group (e.g. JD says "ETL pipelines" in required AND
+  // "ETL workflows" + "data pipelines" in responsibilities), merge them
+  // into a single keyword. Without this, the JD ends up with three
+  // separate weighted entries for the same concept, which inflates
+  // total weight and matched weight (and double-counts when the resume
+  // has any one of the variants).
+  return mergeAliasGroups(afterConstituentDedup, aliasIndex);
+}
+
+/**
+ * Merge keywords that share an alias group. Keep the entry with the
+ * highest classification (must-have > nice-to-have); aggregate
+ * frequencies; recompute weight; union aliases. Keywords with no
+ * alias-group entry pass through unchanged.
+ */
+function mergeAliasGroups(
+  keywords: JdKeyword[],
+  aliasIndex: Map<string, { canonical: string; variants: string[] }>,
+): JdKeyword[] {
+  const groups = new Map<string, JdKeyword[]>();
+  const ungrouped: JdKeyword[] = [];
+
+  for (const k of keywords) {
+    const candidates = [k.surface, k.lemma, ...k.aliases].map((s) =>
+      s.toLowerCase(),
+    );
+    let groupKey: string | null = null;
+    for (const c of candidates) {
+      const g = aliasIndex.get(c);
+      if (g) {
+        groupKey = g.canonical.toLowerCase();
+        break;
+      }
+    }
+    if (!groupKey) {
+      ungrouped.push(k);
+      continue;
+    }
+    if (!groups.has(groupKey)) groups.set(groupKey, []);
+    groups.get(groupKey)!.push(k);
+  }
+
+  const merged: JdKeyword[] = [];
+  for (const members of groups.values()) {
+    if (members.length === 1) {
+      merged.push(members[0]!);
+      continue;
+    }
+    // Highest tier wins (must-have > body/nice-to-have). Within tier,
+    // higher original weight wins.
+    members.sort((a, b) => {
+      if (a.classification !== b.classification) {
+        return a.classification === "must-have" ? -1 : 1;
+      }
+      return b.weight - a.weight;
+    });
+    const primary = members[0]!;
+    // Use the MAX frequency across members rather than summing — when
+    // the same concept is referenced via 3 different surface forms in
+    // the JD, the JD-author isn't asking for it 3× more strongly. Sum
+    // amplification produces inflated weights (and inflated scores).
+    const maxFreq = members.reduce(
+      (max, m) => Math.max(max, m.frequency),
+      0,
+    );
+    const aliasUnion = new Set<string>(primary.aliases);
+    for (const m of members) {
+      if (m === primary) continue;
+      aliasUnion.add(m.surface);
+      for (const a of m.aliases) aliasUnion.add(a);
+    }
+    aliasUnion.delete(primary.surface);
+
+    const baseWeight = primary.classification === "must-have" ? 3 : 1;
+    const weight = baseWeight * (1 + Math.log(maxFreq));
+    merged.push({
+      ...primary,
+      aliases: Array.from(aliasUnion),
+      frequency: maxFreq,
+      weight: Math.round(weight * 100) / 100,
+    });
+  }
+
+  return [...merged, ...ungrouped].sort((a, b) => {
+    if (a.classification !== b.classification) {
+      return a.classification === "must-have" ? -1 : 1;
+    }
+    return b.weight - a.weight;
   });
 }
 
