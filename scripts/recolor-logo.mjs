@@ -35,7 +35,14 @@ const TARGET_DARK_GREEN_HUE = 148; // forest, matches accent #1F4434 (~152° HSL
 const TARGET_BRIGHT_GREEN_HUE = 152; // a touch shifted for cyan→teal-green
 
 async function recolor(input, output, size) {
-  const { data, info } = await sharp(input)
+  // Trim the white padding off the source so the rendered image at small
+  // display sizes is mostly content, not whitespace. Threshold 12 handles
+  // the off-white edges that JPEG-style chroma compression leaves behind.
+  const trimmed = await sharp(input)
+    .trim({ background: { r: 255, g: 255, b: 255, alpha: 1 }, threshold: 12 })
+    .toBuffer();
+
+  const { data, info } = await sharp(trimmed)
     .resize(size, size, { fit: "contain", background: { r: 255, g: 255, b: 255, alpha: 1 } })
     .ensureAlpha()
     .raw()

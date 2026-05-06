@@ -82,10 +82,10 @@ function SiteHeader() {
           {/*
             The brand mark is a self-contained icon + wordmark lockup, so
             the header gets just the image — no extra text alongside.
-            Sized at 56px display height (image source is 384px square for
-            crisp retina rendering). The negative margin lets the logo
-            visually overflow the 80px header without changing nav row
-            height.
+            Sized at 64px display height in an 80px header (~80% ratio,
+            standard for editorial web apps). Image source is 384px square
+            for crisp retina rendering; the recolor script trims white
+            padding so the on-screen 64px is mostly content, not margin.
           */}
           <Image
             src="/logo.png"
@@ -93,7 +93,7 @@ function SiteHeader() {
             width={384}
             height={384}
             priority
-            className="h-14 w-14"
+            className="h-16 w-16"
           />
         </Link>
         <nav className="flex items-center gap-8 text-sm">
