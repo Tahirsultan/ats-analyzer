@@ -43,7 +43,10 @@ async function recolor(input, output, size) {
     .toBuffer();
 
   const { data, info } = await sharp(trimmed)
-    .resize(size, size, { fit: "contain", background: { r: 255, g: 255, b: 255, alpha: 1 } })
+    .resize(size, size, {
+      fit: "contain",
+      background: { r: 255, g: 255, b: 255, alpha: 0 },
+    })
     .ensureAlpha()
     .raw()
     .toBuffer({ resolveWithObject: true });
@@ -55,8 +58,19 @@ async function recolor(input, output, size) {
     const g = out[i + 1];
     const b = out[i + 2];
 
-    // Skip white/near-white background; keep alpha untouched.
-    if (r > 245 && g > 245 && b > 245) continue;
+    // Compute "whiteness" so we can fade the alpha smoothly across the
+    // anti-aliased ring of pixels around glyph edges. Pure white → fully
+    // transparent. A neutral gray ramp between (240,240,240) and pure
+    // white slides alpha 255 → 0 so glyph edges stay smooth on the
+    // off-white app background.
+    if (r >= 240 && g >= 240 && b >= 240) {
+      const minWhite = Math.min(r, g, b);
+      // 240 → alpha 255 (fully opaque); 255 → alpha 0 (fully transparent)
+      const alpha = Math.max(0, 255 - Math.round(((minWhite - 240) / 15) * 255));
+      out[i + 3] = alpha;
+      // For pixels we made fully transparent, skip the recolor branch.
+      if (alpha === 0) continue;
+    }
     // Skip near-black anti-alias seams (rare in this asset).
     if (r < 8 && g < 8 && b < 8) continue;
 
